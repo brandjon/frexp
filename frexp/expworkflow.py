@@ -32,6 +32,14 @@ class ExperimentWorkflow(Workflow):
         return self.prefix + '_params.pickle'
     
     @property
+    def pipe_filename(self):
+        return self.prefix + '_pipe.pickle'
+    
+    @property
+    def data_filename(self):
+        return self.prefix + '_data.pickle'
+    
+    @property
     def datagen(self):
         raise NotImplementedError
     

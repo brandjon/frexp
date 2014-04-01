@@ -67,9 +67,10 @@ class Datagen(Task):
         self.print('Total dataset size: {:,} bytes'.format(total_size))
         
         # Generate trials, save to file.
+        out_fn = self.workflow.params_filename
         tparams_list = self.get_tparams_list(dsparams_list)
-        self.print('Writing ' + self.params_filename + ' ...')
-        with open(self.params_filename, 'wb') as outfile:
+        self.print('Writing ' + out_fn + ' ...')
+        with open(out_fn, 'wb') as outfile:
             pickle.dump(tparams_list, outfile)
     
     def cleanup(self):
