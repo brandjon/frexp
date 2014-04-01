@@ -1,0 +1,110 @@
+==== Description of on-disk object format ====
+
+Allowed object types are similar to JSON, but use Python pickling
+for efficiency.
+
+Dataset parameters:
+
+    {
+        "dsid": <string>,
+        ... // other keys and values
+    }
+
+Dataset:
+
+    {
+        "dsparams": <Dataset params>,
+        "values": [
+            [<val name string> , <type>],
+            ...             // where type is one of {"Set", "Obj"}
+        ],
+        "opseqs": [
+            {
+                "ops": [
+                    [<seq name>, <func name>, <arg 1>, ..., <arg n>],
+                    ...
+                    // (where func name is a string giving a function identifier
+                    // in the driven program, and args are either val names or
+                    // primitives; and where seq name identifies the sequence of
+                    // operations to associate this call with for accounting
+                    // purposes)
+                ],
+                "reps": <int>,
+            },
+            ...
+        ],
+        // Alternatively:
+        "ops": [
+            [<seq name>, ...],
+            ...
+        ],
+    }
+
+Trial params:
+
+    {
+        "dsid": <string>,
+        "prog": <string>,
+    }
+
+Datapoint:
+
+    {
+        "dsparams": <Dataset params>,
+        "prog": <string>,
+        "results": {
+            "seqs": {
+                seq_name: {
+                    <metric>: <value>,
+                    // metrics include:
+                    //   'ttltime_wall', 'avgtime_wall',
+                    //   'ttltime_cpu', 'avgtime_cpu'
+                    // for verification, it includes: 'output'
+                },
+                ...
+            }
+            "sizes": {
+                obj_name: obj_length,
+                ...
+            },
+            "memory": memory_usage,
+        },
+    }
+
+Plot data:
+
+    {
+        "plot_title": <string>,
+        "axes": [
+            {
+                "axes_title": <string>,
+                "ylabel": <string>,
+                "xlabel": <string>,
+                "logscale": <bool>,
+                "series": [
+                    {
+                        "name": <string>,
+                        "style": <string>,
+                        "color": <string>,
+                        "errorbars": <bool>
+                        
+                        "data": [(<x>, <y>), ...],
+                          // if errorbars is false, otherwise
+                        "data": [(<x>, <y>,
+                                    <low_err_delta>, <hi_err_delta>), ...],
+                    },
+                ],
+            },
+            ...
+            ],
+        ],
+        "config": {
+            key: value
+            // valid keys include:
+            //   fontsize, legfontsize,
+            //   xmin, xmax, ymin, ymax,
+            //   linewidth, markersize,
+            //   ticksize, tickwidth,
+            //   figsize, max_xitvls, max_yitvls,
+        },
+    }
