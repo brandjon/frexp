@@ -8,6 +8,7 @@ __all__ = [
 
 
 import builtins
+import os
 
 from frexp.util import StopWatch
 
@@ -33,6 +34,16 @@ class Task:
     def cleanup(self):
         """Remote generated files."""
         pass
+    
+    def remove_file(self, filepath):
+        """If filepath exists, remove the file and print a message.
+        If it doesn't exist, ignore.
+        """
+        try:
+            os.remove(filepath)
+            self.print('Removed ' + filepath)
+        except FileNotFoundError:
+            pass
 
 
 class Workflow:

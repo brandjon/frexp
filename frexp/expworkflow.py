@@ -19,6 +19,19 @@ class ExperimentWorkflow(Workflow):
     """
     
     @property
+    def ds_dirname(self):
+        return self.prefix + '_datasets/'
+    
+    ds_filename_pattern = 'ds_*.pickle'
+    
+    def get_ds_filename(self, dsid):
+        return self.ds_dirname + 'ds_{}.pickle'.format(dsid)
+    
+    @property
+    def params_filename(self):
+        return self.prefix + '_params.pickle'
+    
+    @property
     def datagen(self):
         raise NotImplementedError
     
