@@ -1,6 +1,18 @@
 """Result data extraction."""
 
 
+__all__ = [
+    'Extractor',
+    'AveragerMixin',
+    'SimpleExtractor',
+    'SeqExtractor',
+    'TotalSizeExtractor',
+    'MemExtractor',
+    'NormalizedExtractor',
+    'SizeBreakdownExtractor',
+]
+
+
 import pickle
 import math
 import random
@@ -123,7 +135,7 @@ class Extractor(Task):
     def get_plotdata(self):
         raise NotImplementedError
     
-    def main(self):
+    def run(self):
         with open(self.in_filename, 'rb') as in_file:
             self.data = pickle.load(in_file)
         

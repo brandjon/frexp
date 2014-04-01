@@ -1,6 +1,11 @@
 """Plot the extracted result data."""
 
 
+__all__ = [
+    'Plotter',
+]
+
+
 import pickle
 
 from .workflow import Task
@@ -16,7 +21,7 @@ class Plotter(Task):
         super().__init__(fout, in_filename, out_filename)
         self.out_pdf_filename = out_pdf_filename
     
-    def main(self):
+    def run(self):
         # Delay the import until here so if matplotlib can't be loaded
         # we can still do the rest of the testing.
         from .plot import draw_figure, save_figure
