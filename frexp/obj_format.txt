@@ -30,6 +30,7 @@ Dataset:
                     // purposes)
                 ],
                 "reps": <int>,
+                "timed": <bool>,
             },
             ...
         ],

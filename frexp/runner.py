@@ -1,6 +1,13 @@
 """Run the driver program multiple times and aggregate the results."""
 
 
+__all__ = [
+    'Runner',
+    'IndvRunner',
+    'AllRunner',
+]
+
+
 import pickle
 import os
 from multiprocessing import Process
@@ -28,7 +35,7 @@ class Runner(Task):
         """Return the function to call in the child process to begin
         the driver. Must be pickleable.
         """
-        return driver.main
+        raise NotImplementedError
     
     ### TODO: Optimize to pass in dsid directly to child,
     ### instead of copying from ds file to pipe.
@@ -95,3 +102,17 @@ class Runner(Task):
     
     def cleanup(self):
         self.remove_file(self.workflow.data_filename)
+
+
+class IndvRunner(Runner):
+    
+    @property
+    def drivermain(self):
+        return driver.main_indv
+
+
+class AllRunner(Runner):
+    
+    @property
+    def drivermain(self):
+        return driver.main_all

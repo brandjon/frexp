@@ -1,14 +1,20 @@
 """Execute a test, running and benchmarking the given operations.
 
 This is intended to be executed as a child process using the
-multiprocessing library. The main() function receives the name
-of a temporary file in which it receives the dataset and sends
-back the results.
+multiprocessing library. For each driver class there is a
+corresponding global main() function that calls it. This is
+because even a class method would be unpicklable and hence
+uncallable by multiprocessing.
+
+The main() function receives the name of a temporary file in
+which it receives the dataset and sends back the results.
 """
 
 
 __all__ = [
     'Driver',
+    'IndvDriver',
+    'AllDriver',
 ]
 
 
@@ -82,7 +88,6 @@ class Driver:
         
         for opseq in opseqs:
             ops = opseq['ops']
-            reps = opseq['reps']
             norm_ops = []
             for op in ops:
                 seq_name, func_name, *pre_args = op
@@ -93,15 +98,23 @@ class Driver:
                 tup = tuple([seq_name, func] + args)
                 norm_ops.append(tup)
             self.opseqs.append({'ops': norm_ops,
-                                'reps': reps})
+                                'reps': opseq['reps'],
+                                'timed': opseq['timed']})
     
     def execute_ops(self):
         """Run and benchmark each of the operation sequences."""
+        raise NotImplementedError
+
+
+class IndvDriver(Driver):
+    
+    """Driver that times each operation individually."""
+    
+    def execute_ops(self):
         import runtimelib
         
         # Currently the available metrics are:
-        #   average and total time, as measured by wall time and
-        #   process time
+        #   total time, as measured by process time and wall time
         self.result_data = {}
         self.result_data['seqs'] = {}
         self.result_data['sizes'] = {}
@@ -148,13 +161,89 @@ class Driver:
             }
 
 
-def main(pipe_filename):
+class AllDriver(Driver):
+    
+    """Driver that times all operations together as a single sequence."""
+    
+    def import_data(self):
+        super().import_data()
+        # Get rid of the space usage op.
+        for opseq in self.opseqs:
+            opseq['ops'] = [op for op in opseq['ops']
+                               if op[0] != 'GET_SPACE_USAGE']
+    
+    def execute_ops(self):
+        import runtimelib
+        
+        # Currently the available metrics are:
+        #   average and total time, as measured by wall time and
+        #   process time
+        self.result_data = {}
+        self.result_data['seqs'] = {}
+        self.result_data['sizes'] = {}
+        self.result_data['memory'] = 0
+        
+        res = {}
+        
+        init_seqdata = {'numops': 0,
+                        'time_wall': 0,
+                        'time_cpu': 0}
+        
+        timer_wall = StopWatch(perf_counter)
+        timer_cpu = StopWatch(process_time)
+        
+        seq_data = res.setdefault('all', init_seqdata.copy())
+        
+        for opseq in self.opseqs:
+            timed = opseq['timed']
+            if timed:
+                timer_wall.start()
+                timer_cpu.start()
+            
+            ops = opseq['ops']
+            reps = opseq['reps']
+            for _ in range(reps):
+                for op in ops:
+                    seq_name, func, *args = op
+                    func(*args)
+            
+            if timed:
+                timer_wall.stop()
+                timer_cpu.stop()
+        
+        seq_data['time_wall'] = timer_wall.elapsed
+        seq_data['time_cpu'] = timer_cpu.elapsed
+        
+        self.result_data['sizes'] = runtimelib.get_structure_sizes()
+        self.result_data['memory'] = get_mem_usage()
+        
+        for seq_name, seq_data in res.items():
+            self.result_data['seqs'][seq_name] = {
+                'ttltime_cpu': seq_data['time_cpu'],
+                'ttltime_wall': seq_data['time_wall'],
+            }
+
+
+def main_indv(pipe_filename):
     gc.disable()
     
     with open(pipe_filename, 'rb') as pf:
         dataset, prog = pickle.load(pf)
     
-    driver = Driver(dataset, prog)
+    driver = IndvDriver(dataset, prog)
+    results = driver.run()
+    
+    with open(pipe_filename, 'wb') as pf:
+        pickle.dump(results, pf)
+
+
+def main_all(pipe_filename):
+    gc.disable()
+    
+    with open(pipe_filename, 'rb') as pf:
+        dataset, prog = pickle.load(pf)
+    
+    driver = AllDriver(dataset, prog)
     results = driver.run()
     
     with open(pipe_filename, 'wb') as pf:

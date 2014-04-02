@@ -45,13 +45,15 @@ class ExperimentWorkflow(Workflow):
     def plotdata_filename(self):
         return self.prefix + '_plotdata.pickle'
     
+    imagename = 'plot'
+    
     @property
     def png_filename(self):
-        return self.prefix + '_plot.png'
+        return self.prefix + '_' + self.imagename + '.png'
     
     @property
     def pdf_filename(self):
-        return self.prefix + '_plot.pdf'
+        return self.prefix + '_' + self.imagename + '.pdf'
     
     @property
     def ExpDatagen(self):
