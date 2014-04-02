@@ -136,12 +136,12 @@ class Extractor(Task):
         raise NotImplementedError
     
     def run(self):
-        with open(self.in_filename, 'rb') as in_file:
+        with open(self.workflow.data_filename, 'rb') as in_file:
             self.data = pickle.load(in_file)
         
         plotdata = self.get_plotdata()
         
-        with open(self.out_filename, 'wb') as out_file:
+        with open(self.workflow.plotdata_filename, 'wb') as out_file:
             pickle.dump(plotdata, out_file)
         
         self.print('Done.')

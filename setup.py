@@ -10,5 +10,5 @@ setup(
     license='MIT License',
     description='A library for running benchmark experiments',
     
-    packages=['frexp'],
+    packages=['frexp', 'frexp.plot'],
 )

@@ -8,6 +8,7 @@ __all__ = [
 
 
 import builtins
+import sys
 import os
 
 from frexp.util import StopWatch
@@ -50,13 +51,14 @@ class Workflow:
     
     """Workflow, comprising a series of tasks to execute."""
     
-    def __init__(self, fout, prefix):
-        self.fout = fout
-        """Output stream for status updates."""
+    def __init__(self, prefix, fout=sys.stdout):
         self.prefix = prefix
         """Prefix (including path) for generated file names."""
+        self.fout = fout
+        """Output stream for status updates."""
         
-        self.tasks
+        self.tasks = []
+        """Task instances."""
     
     def print(self, *args, file=None, flush=True, **kargs):
         """Print, defaulting to stream self.fout with flushing."""
