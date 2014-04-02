@@ -116,7 +116,7 @@ def on_battery_power():
         raise ctypes.WinError()
     
     # 0: offline, 1: online, 255: unknown
-    return status.ACLineStatus != 0
+    return status.ACLineStatus == 0
 
 
 def get_mem_usage():

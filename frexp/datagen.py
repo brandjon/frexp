@@ -48,7 +48,7 @@ class Datagen(Task):
         dsparams_list = self.get_dsparams_list()
         
         # Generate datasets, save to files.
-        os.makedirs(self.workflow.ds_dirname, exists_ok=True)
+        os.makedirs(self.workflow.ds_dirname, exist_ok=True)
         total_size = 0
         for i, dsp in enumerate(dsparams_list, 1):
             dsid = dsp['dsid']

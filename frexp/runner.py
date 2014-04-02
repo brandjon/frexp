@@ -45,10 +45,10 @@ class Runner(Task):
         child.start()
         
         child.join()
-        with open(self.pipe_filename, 'rb') as pf:
+        with open(pipe_fn, 'rb') as pf:
             results = pickle.load(pf)
         
-        os.remove(self.pipe_filename)
+        os.remove(pipe_fn)
         return results
     
     def run_single_test(self, trial):
