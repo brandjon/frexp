@@ -3,10 +3,9 @@
 
 __all__ = [
     'Extractor',
-#    'AveragerMixin',
     'SimpleExtractor',
-#    'SeqExtractor',
-#    'TotalSizeExtractor',
+    'SeqExtractor',
+    'TotalSizeExtractor',
 #    'MemExtractor',
 #    'NormalizedExtractor',
 #    'SizeBreakdownExtractor',
@@ -146,23 +145,20 @@ class Extractor(Task):
 
 class SimpleExtractor(Extractor):
     
-    """Extractor that shows each prog's results on a particular seq."""
+    """Scaffolding for an extractor that grabs each datapoint of
+    a prog series.
+    """
     
-    seq = None
-    """Operation sequence to show, e.g. 'all'."""
-    metric = None
-    """Metric to plot, e.g. 'ttltime_cpu'."""
+    # x and y can be scaled in a derived class by overriding
+    # project_x() and project_y().
     
     def project_x(self, p):
-        """Grab x value from datapoint. Can be overridden e.g.
-        for scaling."""
+        """Grab x value from datapoint."""
         return p['dsparams']['x']
     
     def project_y(self, p):
-        """Grab y value from datapoint. Can be overridden e.g.
-        for scaling.
-        """
-        return p['results']['seqs'][self.seq][self.metric]
+        """Grab y value from datapoint."""
+        raise NotImplemented
     
     def get_series_data(self):
         results = {}
@@ -175,18 +171,35 @@ class SimpleExtractor(Extractor):
         return results
 
 
+class SeqExtractor(SimpleExtractor):
+    
+    """Extractor that shows each prog's results for a particular
+    metric on a particular seq.
+    """
+    
+    seq = None
+    """Operation sequence to show, e.g. 'all'."""
+    metric = None
+    """Metric to plot, e.g. 'ttltime_cpu'."""
+    
+    def project_y(self, p):
+        """Grab y value from datapoint. Can be overridden e.g.
+        for scaling.
+        """
+        return p['results']['seqs'][self.seq][self.metric]
 
 
-#class TotalSizeExtractor(SimpleExtractor):
-#    
-#    """Show total structure size on one axes."""
-#    
-#    ylabel = '# aux. entries'
-#    
-#    def project_y(self, p):
-#        return self.project_totalsize(p)
-#
-#
+class TotalSizeExtractor(SimpleExtractor):
+    
+    """Show total auxiliary structure size."""
+    
+    ylabel = '# aux. space'
+    
+    def project_y(self, p):
+        return sum(p['results']['sizes'].values())
+
+
+
 #class MemExtractor(SimpleExtractor):
 #    
 #    """Show total mem usage on one axes."""
