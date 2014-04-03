@@ -108,17 +108,11 @@ def do_series(ser):
     if len(data) == 0:
         return
     unzipped = list(zip(*data))
-    
-    if errorbars:
-        have_err = True
-        xs, ys, lowerrs, hierrs = unzipped
-    else:
-        have_err = False
-        xs, ys = unzipped
+    xs, ys, lowerrs, hierrs = unzipped
     
     plt.plot(xs, ys, style, label=name, color=color)
     
-    if have_err:
+    if errorbars:
         # Make sure to use fmt and label kargs to get rid of extraneous
         # plot lines and legend entries, both of which would screw up
         # the lineselector.

@@ -3,13 +3,13 @@
 
 __all__ = [
     'Extractor',
-    'AveragerMixin',
+#    'AveragerMixin',
     'SimpleExtractor',
-    'SeqExtractor',
-    'TotalSizeExtractor',
-    'MemExtractor',
-    'NormalizedExtractor',
-    'SizeBreakdownExtractor',
+#    'SeqExtractor',
+#    'TotalSizeExtractor',
+#    'MemExtractor',
+#    'NormalizedExtractor',
+#    'SizeBreakdownExtractor',
 ]
 
 
@@ -20,39 +20,6 @@ from itertools import groupby
 from operator import itemgetter
 
 from .workflow import Task
-
-
-def average_points(self, xy, discard_ratio):
-    """Given a list of (x, y) pairs, return a list of quadruples
-    
-        (x, avg y, y low delta, y high delta).
-    
-    For each x value, all the corresponding y values are grouped
-    together. These y values are averaged, then the high and low
-    percentile values are discarded. The difference between the
-    remaining extreme values and the average become the low and high
-    deltas.
-    """
-    xy = list(xy)
-    xy.sort(key=itemgetter(0))
-    
-    result = []
-    for x, grouped in groupby(xy, key=itemgetter(0)):
-        ys = sorted(p[1] for p in grouped)
-        
-        # Compute average including outliers.
-        avg_y = sum(ys) / len(ys)
-        
-        # Exclude high/lo percentile values.
-        discard_width = math.floor(len(ys) * discard_ratio)
-        if discard_width > 0:
-            ys = ys[discard_width : -discard_width]
-        
-        min_y = min(ys)
-        max_y = max(ys)
-        result.append((x, avg_y, avg_y - min_y, max_y - avg_y))
-    
-    return result
 
 
 class Extractor(Task):
@@ -86,6 +53,38 @@ class Extractor(Task):
             'figsize', 'max_xitvls', 'max_yitvls'
         ]}
     
+    def average_points(self, xy, discard_ratio):
+        """Given a list of (x, y) pairs, return a list of quadruples
+        
+            (x, avg y, y low delta, y high delta).
+        
+        For each x value, all the corresponding y values are grouped
+        together. These y values are averaged, then the high and low
+        percentile values are discarded. The difference between the
+        remaining extreme values and the average become the low and high
+        deltas.
+        """
+        xy = list(xy)
+        xy.sort(key=itemgetter(0))
+        
+        result = []
+        for x, grouped in groupby(xy, key=itemgetter(0)):
+            ys = sorted(p[1] for p in grouped)
+            
+            # Compute average including outliers.
+            avg_y = sum(ys) / len(ys)
+            
+            # Exclude high/lo percentile values.
+            discard_width = math.floor(len(ys) * discard_ratio)
+            if discard_width > 0:
+                ys = ys[discard_width : -discard_width]
+            
+            min_y = min(ys)
+            max_y = max(ys)
+            result.append((x, avg_y, avg_y - min_y, max_y - avg_y))
+        
+        return result
+    
     title = None
     ylabel = None
     xlabel = None
@@ -94,67 +93,30 @@ class Extractor(Task):
     discard_ratio = 0.0
     
     series = []
-    """List of """
-    
-#    def select_prog_series(self, points, prog, series):
-#        return [p for p in points
-#                  if p['prog'] == prog
-#                  if series is None or p['dsparams']['series'] == series]
-#    
-#    def project_x(self, p):
-#        return p['dsparams']['x']
-#    
-#    def project_seq_metric(self, p, seq, metric):
-#        return p['results']['seqs'][seq][metric]
-#    
-#    def project_totalsize(self, p):
-#        return sum(p['results']['sizes'].values())
-#    
-#    def project_mem(self, p):
-#        return p['results']['memory']
-#    
-#    def getter_x(self):
-#        def getter(p):
-#            return p['dsparams']['x']
-#        return getter
-#    
-#    def getter_seq_metric(self, seq, metric):
-#        def getter(p):
-#            return p['results']['seqs'][seq][metric]
-#        return getter
-#    
-#    def getter_memory(self):
-#        def getter(p):
-#            return p['results']['memory']
-#        return getter
-#    
-#    def getter_size(self, objname):
-#        def getter(p):
-#            return p['results']['sizes'][objname]
-#        return getter
-#    
-#    def getter_totalsize(self):
-#        def getter(p):
-#            return sum(p['results']['sizes'].values())
-#        return getter
+    """List of (series name, display name, color, style),
+    in order of display.
+    """
     
     def get_series_data(self):
+        """Return a dictionary from series name to a list of
+        points with error data.
+        """
         raise NotImplemented
     
     def get_series(self):
-        series = []
-        for name, data in self.get_series_data():
-            if name not in self.series:
+        series_data = self.get_series_data()
+        results = []
+        for name, dispname, color, style in self.series:
+            if name not in series_data:
                 continue
-            color, style = self.series[name]
-            series.append(dict(
-                name = name,
+            results.append(dict(
+                name = dispname,
                 style = style,
                 color = color,
                 errorbars = self.error_bars,
-                data = data,
+                data = series_data[name],
             ))
-        return series
+        return results
     
     def get_plotdata(self):
         return dict(
@@ -189,7 +151,7 @@ class SimpleExtractor(Extractor):
     seq = None
     """Operation sequence to show, e.g. 'all'."""
     metric = None
-    """Metric to plot, e.g. 'ttltime'."""
+    """Metric to plot, e.g. 'ttltime_cpu'."""
     
     def project_x(self, p):
         """Grab x value from datapoint. Can be overridden e.g.
@@ -203,14 +165,15 @@ class SimpleExtractor(Extractor):
         return p['results']['seqs'][self.seq][self.metric]
     
     def get_series_data(self):
-        results = []
-        for prog in self.series.keys():
+        results = {}
+        for prog, *_rest in self.series:
             points = [p for p in self.data if p['prog'] == prog]
             xy = [(self.project_x(p), self.project_y(p))
                   for p in points]
-            data = average_points(xy, self.discard_ratio)
-            results.append((prog, data))
+            data = self.average_points(xy, self.discard_ratio)
+            results[prog] = data
         return results
+
 
 
 
