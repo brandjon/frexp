@@ -77,10 +77,8 @@ class Datagen(Task):
         # Remove dataset files, dataset dir, and params file.
         
         ds_files = glob.glob(self.workflow.ds_filename_pattern)
-        ### print, don't remove, until confirmed correct
-        print(ds_files)
-#        for dsf in ds_files:
-#            self.remove_file(dsf)
-#        os.rmdir(self.workflow.ds_dirname)
+        for dsf in ds_files:
+            self.remove_file(dsf)
+        os.rmdir(self.workflow.ds_dirname)
         
-        self.remove_file(self.params_filename)
+        self.remove_file(self.workflow.params_filename)

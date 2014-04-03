@@ -24,7 +24,9 @@ class ExperimentWorkflow(Workflow):
     def ds_dirname(self):
         return self.prefix + '_datasets/'
     
-    ds_filename_pattern = 'ds_*.pickle'
+    @property
+    def ds_filename_pattern(self):
+        return self.ds_dirname + 'ds_*.pickle'
     
     def get_ds_filename(self, dsid):
         return self.ds_dirname + 'ds_{}.pickle'.format(dsid)
