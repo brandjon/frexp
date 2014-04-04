@@ -28,6 +28,10 @@ from time import perf_counter, process_time
 from .util import StopWatch, get_mem_usage
 
 
+def user_time():
+    return os.times()[0]
+
+
 class Driver:
     
     """Encapsulates everything needed to run a driven program."""
@@ -123,11 +127,13 @@ class IndvDriver(Driver):
         res = {}
         
         init_seqdata = {'numops': 0,
-                        'time_wall': 0,
-                        'time_cpu': 0}
+                        'time_user': 0,
+                        'time_cpu': 0,
+                        'time_wall': 0}
         
-        timer_wall = StopWatch(perf_counter)
+        timer_user = StopWatch(user_time)
         timer_cpu = StopWatch(process_time)
+        timer_wall = StopWatch(perf_counter)
         
         for opseq in self.opseqs:
             ops = opseq['ops']
@@ -147,15 +153,17 @@ class IndvDriver(Driver):
                     else:
                         seq_data = res.setdefault(seq_name, init_seqdata.copy())
                         
-                        with timer_wall, timer_cpu:
+                        with timer_user, timer_cpu, timer_wall:
                             func(*args)
                         
                         seq_data['numops'] += 1
-                        seq_data['time_wall'] += timer_wall.consume()
+                        seq_data['time_user'] += timer_user.consume()
                         seq_data['time_cpu'] += timer_cpu.consume()
+                        seq_data['time_wall'] += timer_wall.consume()
         
         for seq_name, seq_data in res.items():
             self.result_data['seqs'][seq_name] = {
+                'ttltime_user': seq_data['time_user'],
                 'ttltime_cpu': seq_data['time_cpu'],
                 'ttltime_wall': seq_data['time_wall'],
             }
@@ -186,19 +194,22 @@ class AllDriver(Driver):
         res = {}
         
         init_seqdata = {'numops': 0,
-                        'time_wall': 0,
-                        'time_cpu': 0}
+                        'time_user': 0,
+                        'time_cpu': 0,
+                        'time_wall': 0}
         
-        timer_wall = StopWatch(perf_counter)
+        timer_user = StopWatch(user_time)
         timer_cpu = StopWatch(process_time)
+        timer_wall = StopWatch(perf_counter)
         
         seq_data = res.setdefault('all', init_seqdata.copy())
         
         for opseq in self.opseqs:
             timed = opseq['timed']
             if timed:
-                timer_wall.start()
+                timer_user.start()
                 timer_cpu.start()
+                timer_wall.start()
             
             ops = opseq['ops']
             reps = opseq['reps']
@@ -208,17 +219,20 @@ class AllDriver(Driver):
                     func(*args)
             
             if timed:
-                timer_wall.stop()
+                timer_user.stop()
                 timer_cpu.stop()
+                timer_wall.stop()
         
-        seq_data['time_wall'] = timer_wall.elapsed
+        seq_data['time_user'] = timer_user.elapsed
         seq_data['time_cpu'] = timer_cpu.elapsed
+        seq_data['time_wall'] = timer_wall.elapsed
         
         self.result_data['sizes'] = runtimelib.get_structure_sizes()
         self.result_data['memory'] = get_mem_usage()
         
         for seq_name, seq_data in res.items():
             self.result_data['seqs'][seq_name] = {
+                'ttltime_user': seq_data['time_user'],
                 'ttltime_cpu': seq_data['time_cpu'],
                 'ttltime_wall': seq_data['time_wall'],
             }

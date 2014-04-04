@@ -95,18 +95,23 @@ class Runner(Task):
             min = self.workflow.min_repeats
             max = self.workflow.max_repeats
             window = self.workflow.stddev_window
-            stablized = lambda: np.std(times) / np.mean(times) <= window
+            def stabilized():
+                m = np.mean(times)
+                s = np.std(times)
+                if m < self.workflow.repeat_ylimit:
+                    return True
+                return s / m <= window
             
             while (len(times) == 0 or       # first time
                    len(times) < min or      # didn't reach min
                    (len(times) < max and    # can do more trials
-                    not stablized())):        # should do more trials
+                    not stabilized())):        # should do more trials
                 self.print('. ', end='')
                 dp = self.run_single_test(trial)
                 datapoints.append(dp)
-                times.append(dp['results']['seqs']['all']['ttltime_cpu'])
+                times.append(dp['results']['seqs']['all']['ttltime_user'])
             
-            if len(times) == max and not stablized():
+            if len(times) == max and not stabilized():
                 self.print('Warning: Did not converge '
                            '(std={}, mean={})'.format(
                            np.std(times), np.mean(times)))

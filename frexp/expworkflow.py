@@ -32,6 +32,10 @@ class ExperimentWorkflow(Workflow):
     """Maximum number of repeats to do, regardless of standard
     deviation. Ignored if None.
     """
+    repeat_ylimit = 0
+    """If y is below this value, don't worry about standard deviation
+    stabilizing. Just run min times.
+    """
     
     @property
     def ds_dirname(self):

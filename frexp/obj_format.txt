@@ -58,6 +58,7 @@ Datapoint:
                 seq_name: {
                     <metric>: <value>,
                     // metrics include:
+                    //   'ttltime_user',
                     //   'ttltime_cpu',
                     //   'ttltime_wall',
                     // for verification, it includes: 'output'
