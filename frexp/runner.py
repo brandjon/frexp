@@ -12,6 +12,8 @@ import pickle
 import os
 from multiprocessing import Process
 
+import numpy as np
+
 from frexp.util import on_battery_power
 from frexp.workflow import Task
 from frexp import driver
@@ -29,6 +31,8 @@ class Runner(Task):
     # This has saved me countless times from accidentally running
     # tests on power-saving procesor speed.
     require_ac = True
+    
+    do_repeats = False
     
     @property
     def drivermain(self):
@@ -74,14 +78,50 @@ class Runner(Task):
                      'results': results}
         return datapoint
     
+    def repeat_single_test(self, trial):
+        """Repeatedly run a trial until it meets the standard
+        deviation and min-repeats requirements, as measured
+        by 'all' seq process time. Return all datapoints.
+        """
+        if not self.do_repeats:
+            self.print()
+            return [self.run_single_test(trial)]
+        
+        else:
+            self.print('  ', end='')
+            datapoints = []
+            times = []
+            
+            min = self.workflow.min_repeats
+            max = self.workflow.max_repeats
+            window = self.workflow.stddev_window
+            stablized = lambda: np.std(times) / np.mean(times) <= window
+            
+            while (len(times) == 0 or       # first time
+                   len(times) < min or      # didn't reach min
+                   (len(times) < max and    # can do more trials
+                    not stablized())):        # should do more trials
+                self.print('. ', end='')
+                dp = self.run_single_test(trial)
+                datapoints.append(dp)
+                times.append(dp['results']['seqs']['all']['ttltime_cpu'])
+            
+            if len(times) == max and not stablized():
+                self.print('Warning: Did not converge '
+                           '(std={}, mean={})'.format(
+                           np.std(times), np.mean(times)))
+            self.print()
+            
+            return datapoints
+    
     def run_all_tests(self, tparams_list):
         """Run all test trials."""
         datapoint_list = []
         for i, trial in enumerate(tparams_list, 1):
             self.print('Running test {} of {} '
-                       '...'.format(i, len(tparams_list)))
-            datapoint = self.run_single_test(trial)
-            datapoint_list.append(datapoint)
+                       '...'.format(i, len(tparams_list)), end='')
+            datapoints = self.repeat_single_test(trial)
+            datapoint_list.extend(datapoints)
         return datapoint_list
     
     def run(self):
@@ -112,6 +152,8 @@ class IndvRunner(Runner):
 
 
 class AllRunner(Runner):
+    
+    do_repeats = True
     
     @property
     def drivermain(self):

@@ -20,6 +20,19 @@ class ExperimentWorkflow(Workflow):
     an experiment.
     """
     
+    stddev_window = None
+    """If non-None, standard deviation must be within this fraction
+    of mean before tests stop.
+    """
+    min_repeats = 1
+    """Minimum number of repeats to do, even when standard deviation
+    looks good.
+    """
+    max_repeats = None
+    """Maximum number of repeats to do, regardless of standard
+    deviation. Ignored if None.
+    """
+    
     @property
     def ds_dirname(self):
         return self.prefix + '_datasets/'
