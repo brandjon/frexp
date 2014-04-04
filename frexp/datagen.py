@@ -45,7 +45,7 @@ class Datagen(Task):
     
     def run(self):
         # Determine dataset parameters.
-        dsparams_list = self.get_dsparams_list()
+        dsparams_list = list(self.get_dsparams_list())
         
         # Generate datasets, save to files.
         os.makedirs(self.workflow.ds_dirname, exist_ok=True)
