@@ -108,11 +108,19 @@ class Extractor(Task):
         for name, dispname, color, style in self.series:
             if name not in series_data:
                 continue
+            # Allow style to be a pair to include both style info
+            # and whether or not to use a line of best fit.
+            # If the pair's not given, don't use the line of best fit.
+            if isinstance(style, tuple):
+                style, line_fit = style
+            else:
+                line_fit = False
             results.append(dict(
                 name = dispname,
                 style = style,
                 color = color,
                 errorbars = self.error_bars,
+                line_fit = line_fit,
                 data = series_data[name],
             ))
         return results

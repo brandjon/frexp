@@ -12,6 +12,8 @@ matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
+import numpy as np
+
 from .lineselector import add_lineselector
 
 
@@ -30,6 +32,24 @@ def get_square_subplot_grid(n):
     """Get a (h, w) square arrangement for any number of subplots."""
     side = math.ceil(n ** .5)
     return side, side
+
+
+def styleparts(style):
+    """Break up a plt.plot() line style into its line part
+    and marker part.
+    """
+    # Not sure what the exact format of the style parameter
+    # is, but in my use I always put the line style before
+    # the marker style.
+    if style.startswith('--'):
+        i = 2
+    elif style.startswith('-'):
+        i = 1
+    elif style.startswith('_'):
+        i = 1
+    elif style.startswith(':'):
+        i = 1
+    return style[:i], style[i:]
 
 
 # Structurally break down a plot into axes into series, and execute
@@ -104,13 +124,22 @@ def do_axes(ax):
 def do_series(ser):
     name, style, color = ser['name'], ser['style'], ser['color']
     errorbars = ser['errorbars']
+    line_fit = ser['line_fit']
     data = ser['data']
     if len(data) == 0:
         return
     unzipped = list(zip(*data))
     xs, ys, lowerrs, hierrs = unzipped
     
-    plt.plot(xs, ys, style, label=name, color=color)
+    if line_fit:
+        a, b = np.polyfit(xs, ys, 1)
+        line_style, point_style = styleparts(style)
+        plt.plot(xs, ys, point_style,
+                 label='_nolegend_', color=color)
+        plt.plot(xs, [a * x + b for x in xs], line_style,
+                 label=name, color=color)
+    else:
+        plt.plot(xs, ys, style, label=name, color=color)
     
     if errorbars:
         # Make sure to use fmt and label kargs to get rid of extraneous

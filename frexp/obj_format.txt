@@ -88,10 +88,8 @@ Plot data:
                         "name": <string>,
                         "style": <string>,
                         "color": <string>,
-                        "errorbars": <bool>
-                        
-                        "data": [(<x>, <y>), ...],
-                          // if errorbars is false, otherwise
+                        "errorbars": <bool>,
+                        "line_fit": <bool>,
                         "data": [(<x>, <y>,
                                     <low_err_delta>, <hi_err_delta>), ...],
                     },
