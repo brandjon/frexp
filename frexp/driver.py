@@ -243,6 +243,7 @@ def main_indv(pipe_filename):
     
     with open(pipe_filename, 'rb') as pf:
         dataset, prog = pickle.load(pf)
+    os.remove(pipe_filename)
     
     driver = IndvDriver(dataset, prog)
     results = driver.run()
@@ -256,6 +257,7 @@ def main_all(pipe_filename):
     
     with open(pipe_filename, 'rb') as pf:
         dataset, prog = pickle.load(pf)
+    os.remove(pipe_filename)
     
     driver = AllDriver(dataset, prog)
     results = driver.run()
