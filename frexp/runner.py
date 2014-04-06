@@ -109,7 +109,7 @@ class Runner(Task):
                 self.print('. ', end='')
                 dp = self.run_single_test(trial)
                 datapoints.append(dp)
-                times.append(dp['results']['seqs']['all']['ttltime_user'])
+                times.append(dp['results']['seqs']['all']['ttltime_cpu'])
             
             if len(times) == max and not stabilized():
                 self.print('Warning: Did not converge '
