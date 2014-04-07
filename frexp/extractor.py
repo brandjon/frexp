@@ -25,7 +25,7 @@ def parse_style(style):
     """Parse a style string. The format is a space-separated list of
     tokens, in order
     
-        <lineformat> <markerformat> <linefit>
+        <lineformat> <markerformat> <seriesformat>
     
     Valid values:
     
@@ -34,9 +34,10 @@ def parse_style(style):
         markerformat: matplotlib marker style, optionally prefixed
           by '_' for hollow markers
         
-        linefit: 'line' for line-of-best-fit; or 'normal' 
+        seriesformat: 'normal' for connect-the-dots, 'line' for
+          line-of-best-fit, 'points' for point cloud with no lines 
     """
-    lf, mf, line_fit = style.split()
+    lf, mf, series_format = style.split()
     
     if mf.startswith('_'):
         mf = mf[1:]
@@ -44,11 +45,9 @@ def parse_style(style):
     else:
         hollow_markers = False
     
-    line_fit = {'line': True, 'normal': False}[line_fit]
-    
     style = lf + mf
     
-    return style, hollow_markers, line_fit
+    return style, hollow_markers, series_format
 
 
 class Extractor(Task):
@@ -118,6 +117,9 @@ class Extractor(Task):
     ylabel = None
     xlabel = None
     
+    logx = False
+    logy = False
+    
     error_bars = False
     discard_ratio = 0.0
     
@@ -138,13 +140,13 @@ class Extractor(Task):
         for name, dispname, color, style in self.series:
             if name not in series_data:
                 continue
-            style, hollow_markers, line_fit = parse_style(style)
+            style, hollow_markers, series_format = parse_style(style)
             results.append(dict(
                 name = dispname,
                 style = style,
                 color = color,
                 errorbars = self.error_bars,
-                line_fit = line_fit,
+                format = series_format,
                 hollow_markers = hollow_markers,
                 data = series_data[name],
             ))
@@ -158,7 +160,8 @@ class Extractor(Task):
                 axes_title = None,
                 ylabel = self.ylabel,
                 xlabel = self.xlabel,
-                logscale = False,
+                logx = self.logx,
+                logy = self.logy,
                 series = self.get_series(),
             )],
             config = self.config,

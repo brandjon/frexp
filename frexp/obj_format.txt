@@ -82,14 +82,15 @@ Plot data:
                 "axes_title": <string>,
                 "ylabel": <string>,
                 "xlabel": <string>,
-                "logscale": <bool>,
+                "logx": <bool>,
+                "logy": <bool>,
                 "series": [
                     {
                         "name": <string>,
                         "style": <string>,
                         "color": <string>,
                         "errorbars": <bool>,
-                        "line_fit": <bool>,
+                        "format": <one of "normal", "line", or "points">,
                         'hollow_markers': <bool>,
                         "data": [(<x>, <y>,
                                     <low_err_delta>, <hi_err_delta>), ...],

@@ -104,7 +104,8 @@ def do_plot_helper(plot):
     plt.subplots_adjust(bottom=.15, left=.15)
 
 def do_axes(ax):
-    title, series, logscale = ax['axes_title'], ax['series'], ax['logscale']
+    title, series = ax['axes_title'], ax['series']
+    logx, logy = ax['logx'], ax['logy']
     ylabel, xlabel = ax['ylabel'], ax['xlabel']
     if title:
         plt.title(title)
@@ -112,7 +113,9 @@ def do_axes(ax):
         plt.ylabel(ylabel)
     if xlabel:
         plt.xlabel(xlabel)
-    if logscale:
+    if logx:
+        plt.gca().set_xscale('log')
+    if logy:
         plt.gca().set_yscale('log')
     
     leg_artists = []
@@ -127,7 +130,7 @@ def do_axes(ax):
 def do_series(ser):
     name, style, color = ser['name'], ser['style'], ser['color']
     errorbars = ser['errorbars']
-    line_fit = ser['line_fit']
+    series_format = ser['format']
     hollow_markers = ser['hollow_markers']
     data = ser['data']
     if len(data) == 0:
@@ -142,7 +145,13 @@ def do_series(ser):
     else:
         plotkargs = {}
     
-    if line_fit:
+    if series_format == 'normal':
+        leg_artist = plt.plot(xs, ys, style,
+                              label=name, color=color, **plotkargs)
+        assert len(leg_artist) == 1
+        leg_artist = leg_artist[0]
+    
+    elif series_format == 'line':
         a, b = np.polyfit(xs, ys, 1)
         line_style, point_style = styleparts(style)
         plt.plot(xs, ys, point_style,
@@ -152,8 +161,10 @@ def do_series(ser):
         leg_artist = Line2D([0, 1], [0, 1], linestyle=line_style,
                             marker=point_style,
                             label=name, color=color, **plotkargs)
-    else:
-        leg_artist = plt.plot(xs, ys, style,
+    
+    elif series_format == 'points':
+        line_style, point_style = styleparts(style)
+        leg_artist = plt.plot(xs, ys, point_style,
                               label=name, color=color, **plotkargs)
         assert len(leg_artist) == 1
         leg_artist = leg_artist[0]
