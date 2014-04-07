@@ -53,6 +53,7 @@ class Datagen(Task):
     def run(self):
         # Determine dataset parameters.
         dsparams_list = list(self.get_dsparams_list())
+        seen_dsids = {}
         
         # Generate datasets, save to files.
         os.makedirs(self.workflow.ds_dirname, exist_ok=True)
@@ -64,7 +65,11 @@ class Datagen(Task):
             ds_list = self.generate_multiple(dsp)
             
             for j, ds in enumerate(ds_list):
-                ds_filename = self.workflow.get_ds_filename(ds['dsid'])
+                dsid = ds['dsid']
+                if dsid in seen_dsids:
+                    raise AssertionError('Duplicate dsid: ' + dsid)
+                seen_dsids.add(dsid)
+                ds_filename = self.workflow.get_ds_filename(dsid)
                 with open(ds_filename, 'wb') as dsfile:
                     pickle.dump(ds, dsfile)
                 ds_size = os.stat(ds_filename).st_size
