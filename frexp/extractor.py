@@ -128,18 +128,16 @@ class Extractor(Task):
     in order of display.
     """
     
-    def get_series_data(self):
-        """Return a dictionary from series name to a list of
+    def get_series_data(self, datapoints, sid):
+        """Given datapoints and a series id, return a list of
         points with error data.
         """
         raise NotImplemented
     
     def get_series(self):
-        series_data = self.get_series_data()
         results = []
-        for name, dispname, color, style in self.series:
-            if name not in series_data:
-                continue
+        for sid, dispname, color, style in self.series:
+            data = self.get_series_data(self.data, sid)
             style, hollow_markers, series_format = parse_style(style)
             results.append(dict(
                 name = dispname,
@@ -148,7 +146,7 @@ class Extractor(Task):
                 errorbars = self.error_bars,
                 format = series_format,
                 hollow_markers = hollow_markers,
-                data = series_data[name],
+                data = data,
             ))
         return results
     
@@ -185,6 +183,8 @@ class SimpleExtractor(Extractor):
     a prog series.
     """
     
+    # Series ids are just prog names.
+    
     # x and y can be scaled in a derived class by overriding
     # project_x() and project_y().
     
@@ -194,17 +194,15 @@ class SimpleExtractor(Extractor):
     
     def project_y(self, p):
         """Grab y value from datapoint."""
-        raise NotImplemented
+        raise NotImplementedError
     
-    def get_series_data(self):
-        results = {}
-        for prog, *_rest in self.series:
-            points = [p for p in self.data if p['prog'] == prog]
-            xy = [(self.project_x(p), self.project_y(p))
-                  for p in points]
-            data = self.average_points(xy, self.discard_ratio)
-            results[prog] = data
-        return results
+    def get_series_data(self, datapoints, sid):
+        # Pick out the points for this prog, p
+        points = [p for p in datapoints if p['prog'] == sid]
+        xy = [(self.project_x(p), self.project_y(p))
+              for p in points]
+        data = self.average_points(xy, self.discard_ratio)
+        return data
 
 
 class SeqExtractor(SimpleExtractor):
