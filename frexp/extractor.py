@@ -128,16 +128,44 @@ class Extractor(Task):
     in order of display.
     """
     
+    # x and y can be scaled in a derived class by overriding
+    # project_x() and project_y().
+    
+    def project_x(self, p):
+        """Grab x value from datapoint."""
+        return p['dsparams']['x']
+    
+    def project_y(self, p):
+        """Grab y value from datapoint."""
+        raise NotImplementedError
+    
     def get_series_data(self, datapoints, sid):
+        """Given datapoints and a series id, return a list of
+        datapoints in that series.
+        """
+        raise NotImplementedError
+    
+    def project_and_average(self, datapoints):
+        """Given datapoints, project and average the x and y coords
+        to get back xy points with error data.
+        """
+        points = [(self.project_x(p), self.project_y(p))
+                  for p in datapoints]
+        points = self.average_points(points, self.discard_ratio)
+        return points
+    
+    def get_series_points(self, datapoints, sid):
         """Given datapoints and a series id, return a list of
         points with error data.
         """
-        raise NotImplemented
+        data = self.get_series_data(datapoints, sid)
+        points = self.project_and_average(data)
+        return points
     
     def get_series(self):
         results = []
         for sid, dispname, color, style in self.series:
-            data = self.get_series_data(self.data, sid)
+            data = self.get_series_points(self.data, sid)
             style, hollow_markers, series_format = parse_style(style)
             results.append(dict(
                 name = dispname,
@@ -185,23 +213,9 @@ class SimpleExtractor(Extractor):
     
     # Series ids are just prog names.
     
-    # x and y can be scaled in a derived class by overriding
-    # project_x() and project_y().
-    
-    def project_x(self, p):
-        """Grab x value from datapoint."""
-        return p['dsparams']['x']
-    
-    def project_y(self, p):
-        """Grab y value from datapoint."""
-        raise NotImplementedError
-    
     def get_series_data(self, datapoints, sid):
-        # Pick out the points for this prog, p
-        points = [p for p in datapoints if p['prog'] == sid]
-        xy = [(self.project_x(p), self.project_y(p))
-              for p in points]
-        data = self.average_points(xy, self.discard_ratio)
+        # Pick out the points for this prog.
+        data = [p for p in datapoints if p['prog'] == sid]
         return data
 
 
