@@ -1,7 +1,4 @@
-"""Draw matplotlib plots from a description of the data.
-
-See readme-explib.txt for data format.
-"""
+"""Draw matplotlib plots from a description of the data."""
 
 
 import math
@@ -10,6 +7,7 @@ import matplotlib
 # Use a Qt backend since Tk seems to mess up my keypresses (under Windows).
 matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from matplotlib.ticker import MaxNLocator
 
 import numpy as np
@@ -116,10 +114,15 @@ def do_axes(ax):
         plt.xlabel(xlabel)
     if logscale:
         plt.gca().set_yscale('log')
-    for ser in series:
-        do_series(ser)
     
-    plt.legend(loc='upper left')
+    leg_artists = []
+    leg_texts = []
+    for ser in series:
+        la, lt = do_series(ser)
+        leg_artists.append(la)
+        leg_texts.append(lt)
+    
+    plt.legend(leg_artists, leg_texts, loc='upper left')
 
 def do_series(ser):
     name, style, color = ser['name'], ser['style'], ser['color']
@@ -146,8 +149,14 @@ def do_series(ser):
                  label='_nolegend_', color=color, **plotkargs)
         plt.plot(xs, [a * x + b for x in xs], line_style,
                  label=name, color=color, **plotkargs)
+        leg_artist = Line2D([0, 1], [0, 1], linestyle=line_style,
+                            marker=point_style,
+                            label=name, color=color, **plotkargs)
     else:
-        plt.plot(xs, ys, style, label=name, color=color, **plotkargs)
+        leg_artist = plt.plot(xs, ys, style,
+                              label=name, color=color, **plotkargs)
+        assert len(leg_artist) == 1
+        leg_artist = leg_artist[0]
     
     if errorbars:
         # Make sure to use fmt and label kargs to get rid of extraneous
@@ -155,6 +164,8 @@ def do_series(ser):
         # the lineselector.
         plt.errorbar(xs, ys, yerr=(lowerrs, hierrs),
                      ecolor=color, fmt=None, label='_nolegend_')
+    
+    return leg_artist, name
 
 
 class Plot:
