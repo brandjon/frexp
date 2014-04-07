@@ -43,6 +43,13 @@ class Datagen(Task):
         """Given a dataset params object, return a dataset."""
         raise NotImplementedError
     
+    def generate_multiple(self, dsparams):
+        """Given a dataset params object, return a list of datasets.
+        Hook for allowing the same dsparams to produce similar
+        datasets.
+        """
+        return [self.generate(dsparams)]
+    
     def run(self):
         # Determine dataset parameters.
         dsparams_list = list(self.get_dsparams_list())
@@ -51,18 +58,20 @@ class Datagen(Task):
         os.makedirs(self.workflow.ds_dirname, exist_ok=True)
         total_size = 0
         for i, dsp in enumerate(dsparams_list, 1):
-            dsid = dsp['dsid']
-            self.print('Generating dataset {} of {}: {}'
-                       '...'.format(i, len(dsparams_list), dsid),
-                       end='')
-            ds = self.generate(dsp)
+            itemstring = 'Generating for params {:<10} ({} of {})...'.format(
+                         dsp['dsid'], i, len(dsparams_list))
+            self.print(itemstring, end='')
+            ds_list = self.generate_multiple(dsp)
             
-            ds_filename = self.workflow.get_ds_filename(dsid)
-            with open(ds_filename, 'wb') as dsfile:
-                pickle.dump(ds, dsfile)
-            ds_size = os.stat(ds_filename).st_size
-            total_size += ds_size
-            self.print(' ({:,} bytes)'.format(ds_size))
+            for j, ds in enumerate(ds_list):
+                ds_filename = self.workflow.get_ds_filename(ds['dsid'])
+                with open(ds_filename, 'wb') as dsfile:
+                    pickle.dump(ds, dsfile)
+                ds_size = os.stat(ds_filename).st_size
+                total_size += ds_size
+                if j > 0:
+                    self.print(' ' * len(itemstring), end='')
+                self.print(' ({:,} bytes)'.format(ds_size))
         
         self.print('Total dataset size: {:,} bytes'.format(total_size))
         
