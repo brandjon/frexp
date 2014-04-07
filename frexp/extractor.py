@@ -21,6 +21,36 @@ from operator import itemgetter
 from .workflow import Task
 
 
+def parse_style(style):
+    """Parse a style string. The format is a space-separated list of
+    tokens, in order
+    
+        <lineformat> <markerformat> <linefit>
+    
+    Valid values:
+    
+        lineformat: matplotlib line style
+        
+        markerformat: matplotlib marker style, optionally prefixed
+          by '_' for hollow markers
+        
+        linefit: 'line' for line-of-best-fit; or 'normal' 
+    """
+    lf, mf, line_fit = style.split()
+    
+    if mf.startswith('_'):
+        mf = mf[1:]
+        hollow_markers = True
+    else:
+        hollow_markers = False
+    
+    line_fit = {'line': True, 'normal': False}[line_fit]
+    
+    style = lf + mf
+    
+    return style, hollow_markers, line_fit
+
+
 class Extractor(Task):
     
     """Abstract base class for extractors. Defines utility functions
@@ -108,19 +138,14 @@ class Extractor(Task):
         for name, dispname, color, style in self.series:
             if name not in series_data:
                 continue
-            # Allow style to be a pair to include both style info
-            # and whether or not to use a line of best fit.
-            # If the pair's not given, don't use the line of best fit.
-            if isinstance(style, tuple):
-                style, line_fit = style
-            else:
-                line_fit = False
+            style, hollow_markers, line_fit = parse_style(style)
             results.append(dict(
                 name = dispname,
                 style = style,
                 color = color,
                 errorbars = self.error_bars,
                 line_fit = line_fit,
+                hollow_markers = hollow_markers,
                 data = series_data[name],
             ))
         return results

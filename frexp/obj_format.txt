@@ -90,6 +90,7 @@ Plot data:
                         "color": <string>,
                         "errorbars": <bool>,
                         "line_fit": <bool>,
+                        'hollow_markers': <bool>,
                         "data": [(<x>, <y>,
                                     <low_err_delta>, <hi_err_delta>), ...],
                     },

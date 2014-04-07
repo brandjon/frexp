@@ -125,21 +125,29 @@ def do_series(ser):
     name, style, color = ser['name'], ser['style'], ser['color']
     errorbars = ser['errorbars']
     line_fit = ser['line_fit']
+    hollow_markers = ser['hollow_markers']
     data = ser['data']
     if len(data) == 0:
         return
     unzipped = list(zip(*data))
     xs, ys, lowerrs, hierrs = unzipped
     
+    if hollow_markers:
+        plotkargs = {'markerfacecolor': 'none',
+                     'markeredgecolor': color,
+                     'markeredgewidth': 1}
+    else:
+        plotkargs = {}
+    
     if line_fit:
         a, b = np.polyfit(xs, ys, 1)
         line_style, point_style = styleparts(style)
         plt.plot(xs, ys, point_style,
-                 label='_nolegend_', color=color)
+                 label='_nolegend_', color=color, **plotkargs)
         plt.plot(xs, [a * x + b for x in xs], line_style,
-                 label=name, color=color)
+                 label=name, color=color, **plotkargs)
     else:
-        plt.plot(xs, ys, style, label=name, color=color)
+        plt.plot(xs, ys, style, label=name, color=color, **plotkargs)
     
     if errorbars:
         # Make sure to use fmt and label kargs to get rid of extraneous
