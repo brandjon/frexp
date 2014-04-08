@@ -102,7 +102,7 @@ class Runner(Task):
                 s = np.std(times)
                 if m < self.workflow.repeat_ylimit:
                     return True
-                return s / m <= window
+                return s / m <= window if m > 0 else True
             
             while (len(times) == 0 or       # first time
                    len(times) < min or      # didn't reach min
