@@ -80,7 +80,7 @@ class Runner(Task):
         datapoint.update(trial)
         return datapoint
     
-    def repeat_single_test(self, trial):
+    def repeat_single_test(self, trial, itemstrlen):
         """Repeatedly run a trial until it meets the standard
         deviation and min-repeats requirements, as measured
         by 'all' seq process time. Return all datapoints.
@@ -108,6 +108,11 @@ class Runner(Task):
                    len(times) < min or      # didn't reach min
                    (len(times) < max and    # can do more trials
                     not stabilized())):        # should do more trials
+                if len(times) > 0 and len(times) % 10 == 0:
+                    statusstr = '  ({:.3f}, {:.3f})'.format(
+                                np.std(times), np.mean(times))
+                    statusstr = statusstr.ljust(itemstrlen)
+                    self.print('\n' + statusstr, end='')
                 self.print('. ', end='')
                 dp = self.run_single_test(trial)
                 datapoints.append(dp)
@@ -125,9 +130,9 @@ class Runner(Task):
         """Run all test trials."""
         datapoint_list = []
         for i, trial in enumerate(tparams_list, 1):
-            self.print('Running test {} of {} '
-                       '...'.format(i, len(tparams_list)), end='')
-            datapoints = self.repeat_single_test(trial)
+            itemstr = 'Running test {} of {} ...'.format(i, len(tparams_list))
+            self.print(itemstr, end='')
+            datapoints = self.repeat_single_test(trial, len(itemstr))
             datapoint_list.extend(datapoints)
         return datapoint_list
     
