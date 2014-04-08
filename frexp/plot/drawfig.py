@@ -122,8 +122,9 @@ def do_axes(ax):
     leg_texts = []
     for ser in series:
         la, lt = do_series(ser)
-        leg_artists.append(la)
-        leg_texts.append(lt)
+        if la is not None:
+            leg_artists.append(la)
+            leg_texts.append(lt)
     
     plt.legend(leg_artists, leg_texts, loc='upper left')
 
@@ -134,7 +135,7 @@ def do_series(ser):
     hollow_markers = ser['hollow_markers']
     data = ser['data']
     if len(data) == 0:
-        return
+        return None, None
     unzipped = list(zip(*data))
     xs, ys, lowerrs, hierrs = unzipped
     

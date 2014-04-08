@@ -7,38 +7,14 @@ Dataset parameters:
 
     {
         "dsid": <string>,
-        ... // other keys and values
+        ...
     }
 
 Dataset:
 
     {
         "dsparams": <Dataset params>,
-        "values": [
-            [<val name string> , <type>],
-            ...             // where type is one of {"Set", "Obj"}
-        ],
-        "opseqs": [
-            {
-                "ops": [
-                    [<seq name>, <func name>, <arg 1>, ..., <arg n>],
-                    ...
-                    // (where func name is a string giving a function identifier
-                    // in the driven program, and args are either val names or
-                    // primitives; and where seq name identifies the sequence of
-                    // operations to associate this call with for accounting
-                    // purposes)
-                ],
-                "reps": <int>,
-                "timed": <bool>,
-            },
-            ...
-        ],
-        // Alternatively:
-        "ops": [
-            [<seq name>, ...],
-            ...
-        ],
+        ...
     }
 
 Trial params:
@@ -46,6 +22,7 @@ Trial params:
     {
         "dsid": <string>,
         "prog": <string>,
+        ...
     }
 
 Datapoint:
@@ -53,24 +30,8 @@ Datapoint:
     {
         "dsparams": <Dataset params>,
         "prog": <string>,
-        "results": {
-            "seqs": {
-                seq_name: {
-                    <metric>: <value>,
-                    // metrics include:
-                    //   'ttltime_user',
-                    //   'ttltime_cpu',
-                    //   'ttltime_wall',
-                    // for verification, it includes: 'output'
-                },
-                ...
-            }
-            "sizes": {
-                obj_name: obj_length,
-                ...
-            },
-            "memory": memory_usage,
-        },
+        ...
+        "results": ...
     }
 
 Plot data:

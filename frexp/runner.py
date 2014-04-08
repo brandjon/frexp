@@ -44,13 +44,13 @@ class Runner(Task):
     ### TODO: Optimize to pass in dsid directly to child,
     ### instead of copying from ds file to pipe.
     
-    def dispatch_test(self, dataset, prog):
+    def dispatch_test(self, dataset, prog, other_tparams):
         """Spawn a driver process and get its result."""
         # Communicate the dataset and results via a temporary
         # pipe file.
         pipe_fn = self.workflow.pipe_filename
         with open(pipe_fn, 'wb') as pf:
-            pickle.dump((dataset, prog), pf)
+            pickle.dump((dataset, prog, other_tparams), pf)
         
         child = Process(target=self.drivermain, args=(pipe_fn,))
         child.start()
@@ -64,18 +64,20 @@ class Runner(Task):
     
     def run_single_test(self, trial):
         """Run a single execution and return its result datapoint."""
-        dsid = trial['dsid']
-        prog = trial['prog']
+        trial = dict(trial)
+        dsid = trial.pop('dsid')
+        prog = trial.pop('prog')
         
         ds_fn = self.workflow.get_ds_filename(dsid)
         with open(ds_fn, 'rb') as dsfile:
             dataset = pickle.load(dsfile)
         
-        results = self.dispatch_test(dataset, prog)
+        results = self.dispatch_test(dataset, prog, trial)
         
         datapoint = {'dsparams': dataset['dsparams'],
                      'prog': prog,
                      'results': results}
+        datapoint.update(trial)
         return datapoint
     
     def repeat_single_test(self, trial):
@@ -109,7 +111,7 @@ class Runner(Task):
                 self.print('. ', end='')
                 dp = self.run_single_test(trial)
                 datapoints.append(dp)
-                times.append(dp['results']['seqs']['all']['ttltime_cpu'])
+                times.append(dp['results']['ttltime_cpu'])
             
             if len(times) == max and not stabilized():
                 self.print('Warning: Did not converge '

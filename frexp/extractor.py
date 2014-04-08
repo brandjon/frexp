@@ -244,7 +244,7 @@ class TotalSizeExtractor(SimpleExtractor):
     ylabel = '# aux. space'
     
     def project_y(self, p):
-        return sum(p['results']['sizes'].values())
+        return p['results']['size']
 
 
 
