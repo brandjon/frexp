@@ -69,5 +69,6 @@ Plot data:
             //   linewidth, markersize,
             //   ticksize, tickwidth,
             //   figsize, max_xitvls, max_yitvls,
+            //   x_ticklocs, y_ticklocs
         },
     }

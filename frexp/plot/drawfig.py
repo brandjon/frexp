@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import MaxNLocator, FixedLocator
 
 import numpy as np
 
@@ -100,6 +100,10 @@ def do_plot_helper(plot):
         ax.xaxis.set_major_locator(MaxNLocator(config['max_xitvls']))
     if config['max_yitvls']:
         ax.yaxis.set_major_locator(MaxNLocator(config['max_xitvls']))
+    if config['x_ticklocs'] is not None:
+        ax.xaxis.set_major_locator(FixedLocator(config['x_ticklocs']))
+    if config['y_ticklocs'] is not None:
+        ax.yaxis.set_major_locator(FixedLocator(config['y_ticklocs']))
     
     plt.subplots_adjust(bottom=.15, left=.15)
 

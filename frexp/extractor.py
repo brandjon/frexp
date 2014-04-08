@@ -70,6 +70,8 @@ class Extractor(Task):
     figsize = (12, 9)
     max_xitvls = None
     max_yitvls = None
+    x_ticklocs = None
+    y_ticklocs = None
     
     @property
     def config(self):
@@ -78,7 +80,8 @@ class Extractor(Task):
             'fontsize', 'legfontsize',
             'xmin', 'xmax', 'ymin', 'ymax',
             'linewidth', 'markersize', 'ticksize', 'tickwidth',
-            'figsize', 'max_xitvls', 'max_yitvls'
+            'figsize', 'max_xitvls', 'max_yitvls',
+            'x_ticklocs', 'y_ticklocs',
         ]}
     
     def average_points(self, xy, discard_ratio):
@@ -242,7 +245,7 @@ class TotalSizeExtractor(SimpleExtractor):
     ylabel = '# aux. space'
     
     def project_y(self, p):
-        return sum(p['results']['size'].values())
+        return p['results']['size']
 
 
 
