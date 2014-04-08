@@ -4,7 +4,7 @@
 __all__ = [
     'Extractor',
     'SimpleExtractor',
-    'SeqExtractor',
+    'MetricExtractor',
     'TotalSizeExtractor',
 #    'MemExtractor',
 #    'NormalizedExtractor',
@@ -219,14 +219,12 @@ class SimpleExtractor(Extractor):
         return data
 
 
-class SeqExtractor(SimpleExtractor):
+class MetricExtractor(SimpleExtractor):
     
     """Extractor that shows each prog's results for a particular
-    metric on a particular seq.
+    metric.
     """
     
-    seq = None
-    """Operation sequence to show, e.g. 'all'."""
     metric = None
     """Metric to plot, e.g. 'ttltime_cpu'."""
     
@@ -234,7 +232,7 @@ class SeqExtractor(SimpleExtractor):
         """Grab y value from datapoint. Can be overridden e.g.
         for scaling.
         """
-        return p['results']['seqs'][self.seq][self.metric]
+        return p['results'][self.metric]
 
 
 class TotalSizeExtractor(SimpleExtractor):
@@ -244,7 +242,7 @@ class TotalSizeExtractor(SimpleExtractor):
     ylabel = '# aux. space'
     
     def project_y(self, p):
-        return p['results']['size']
+        return sum(p['results']['size'].values())
 
 
 
