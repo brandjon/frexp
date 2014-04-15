@@ -116,7 +116,7 @@ class Runner(Task):
                 self.print('. ', end='')
                 dp = self.run_single_test(trial)
                 datapoints.append(dp)
-                times.append(dp['results']['ttltime_cpu'])
+                times.append(dp['results']['stdmetric'])
             
             if len(times) == max and not stabilized():
                 self.print('Warning: Did not converge '
