@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.ticker import MaxNLocator, FixedLocator
+from matplotlib.ticker import MaxNLocator, FixedLocator, ScalarFormatter
 
 import numpy as np
 
@@ -111,6 +111,7 @@ def do_axes(ax):
     title, series = ax['axes_title'], ax['series']
     logx, logy = ax['logx'], ax['logy']
     ylabel, xlabel = ax['ylabel'], ax['xlabel']
+    scalarx, scalary = ax['scalarx'], ax['scalary']
     if title:
         plt.title(title)
     if ylabel:
@@ -121,6 +122,10 @@ def do_axes(ax):
         plt.gca().set_xscale('log')
     if logy:
         plt.gca().set_yscale('log')
+    if scalarx:
+        plt.gca().xaxis.set_major_formatter(ScalarFormatter())
+    if scalary:
+        plt.gca().yaxis.set_major_formatter(ScalarFormatter())
     
     leg_artists = []
     leg_texts = []

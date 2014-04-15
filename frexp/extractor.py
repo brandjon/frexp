@@ -123,6 +123,9 @@ class Extractor(Task):
     logx = False
     logy = False
     
+    scalarx = False
+    scalary = False
+    
     error_bars = False
     discard_ratio = 0.0
     
@@ -191,6 +194,8 @@ class Extractor(Task):
                 xlabel = self.xlabel,
                 logx = self.logx,
                 logy = self.logy,
+                scalarx = self.scalarx,
+                scalary = self.scalary,
                 series = self.get_series(),
             )],
             config = self.config,

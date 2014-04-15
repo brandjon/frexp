@@ -45,6 +45,8 @@ Plot data:
                 "xlabel": <string>,
                 "logx": <bool>,
                 "logy": <bool>,
+                "scalarx": <bool>,
+                "scalary": <bool>,
                 "series": [
                     {
                         "name": <string>,
