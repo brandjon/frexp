@@ -53,7 +53,7 @@ Plot data:
                         "style": <string>,
                         "color": <string>,
                         "errorbars": <bool>,
-                        "format": <one of "normal", "line", or "points">,
+                        "format": <one of "normal", "polyN", or "points">,
                         'hollow_markers': <bool>,
                         "data": [(<x>, <y>,
                                     <low_err_delta>, <hi_err_delta>), ...],

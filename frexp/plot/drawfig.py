@@ -161,12 +161,13 @@ def do_series(ser):
         assert len(leg_artist) == 1
         leg_artist = leg_artist[0]
     
-    elif series_format == 'line':
-        a, b = np.polyfit(xs, ys, 1)
+    elif series_format.startswith('poly'):
+        deg = int(series_format[4:])
+        pol = np.polyfit(xs, ys, deg)
         line_style, point_style = styleparts(style)
         plt.plot(xs, ys, point_style,
                  label='_nolegend_', color=color, **plotkargs)
-        plt.plot(xs, [a * x + b for x in xs], line_style,
+        plt.plot(xs, np.polyval(pol, xs), line_style,
                  label=name, color=color, **plotkargs)
         leg_artist = Line2D([0, 1], [0, 1], linestyle=line_style,
                             marker=point_style,
