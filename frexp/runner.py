@@ -3,8 +3,6 @@
 
 __all__ = [
     'Runner',
-    'IndvRunner',
-    'AllRunner',
 ]
 
 
@@ -16,7 +14,6 @@ import numpy as np
 
 from frexp.util import on_battery_power
 from frexp.workflow import Task
-from frexp import driver
 
 
 class Runner(Task):
@@ -154,19 +151,3 @@ class Runner(Task):
     
     def cleanup(self):
         self.remove_file(self.workflow.data_filename)
-
-
-class IndvRunner(Runner):
-    
-    @property
-    def drivermain(self):
-        return driver.main_indv
-
-
-class AllRunner(Runner):
-    
-    do_repeats = True
-    
-    @property
-    def drivermain(self):
-        return driver.main_all

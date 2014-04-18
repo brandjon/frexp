@@ -89,6 +89,7 @@ class Verifier(Task):
                     goalprog = prog
                 else:
                     if output != goal:
+                        self.print()
                         self.print('Output disagrees for trial group ' + tid)
                         self.print('  params: ' + str(dataset['dsparams']))
                         self.print('  goalprog: {}, prog: {}'.format(
