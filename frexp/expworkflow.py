@@ -9,8 +9,6 @@ __all__ = [
 import sys
 
 from frexp.workflow import Workflow
-from frexp.runner import Runner
-from frexp.verifier import Verifier
 from frexp.plotter import Plotter
 
 
@@ -39,39 +37,51 @@ class ExperimentWorkflow(Workflow):
     
     @property
     def ds_dirname(self):
+        """Directory containing generated datasets."""
         return self.prefix + '_datasets/'
     
     @property
-    def ds_filename_pattern(self):
+    def ds_filename_glob(self):
+        """Glob pattern for generated datasets."""
         return self.ds_dirname + 'ds_*.pickle'
     
     def get_ds_filename(self, dsid):
+        """Get filename for the dataset named dsid."""
         return self.ds_dirname + 'ds_{}.pickle'.format(dsid)
     
     @property
     def params_filename(self):
+        """Filename for list of trial params."""
         return self.prefix + '_params.pickle'
     
     @property
     def pipe_filename(self):
+        """Filename for pipe file used to communicate with
+        driver program.
+        """
         return self.prefix + '_pipe.pickle'
     
     @property
     def data_filename(self):
+        """Filename for result data."""
         return self.prefix + '_data.pickle'
     
     @property
     def plotdata_filename(self):
+        """Filename for extracted plot data."""
         return self.prefix + '_plotdata.pickle'
     
     imagename = 'plot'
+    """Component of filename for generated image files."""
     
     @property
     def png_filename(self):
+        """Filename for png output."""
         return self.prefix + '_' + self.imagename + '.png'
     
     @property
     def pdf_filename(self):
+        """Filename for pdf output."""
         return self.prefix + '_' + self.imagename + '.pdf'
     
     @property
@@ -82,8 +92,14 @@ class ExperimentWorkflow(Workflow):
     def ExpExtractor(self):
         raise NotImplementedError
     
-    ExpRunner = Runner
-    ExpVerifier = Verifier
+    @property
+    def ExpRunner(self):
+        raise NotImplementedError
+    
+    @property
+    def ExpVerifier(self):
+        raise NotImplementedError
+    
     ExpPlotter = Plotter
     
     def __init__(self, prefix, fout=sys.stdout):

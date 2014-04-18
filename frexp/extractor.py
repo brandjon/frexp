@@ -6,15 +6,12 @@ __all__ = [
     'SimpleExtractor',
     'MetricExtractor',
     'TotalSizeExtractor',
-#    'MemExtractor',
 #    'NormalizedExtractor',
-#    'SizeBreakdownExtractor',
 ]
 
 
 import pickle
 import math
-import random
 from itertools import groupby
 from operator import itemgetter
 
@@ -257,16 +254,6 @@ class TotalSizeExtractor(SimpleExtractor):
 
 
 
-#class MemExtractor(SimpleExtractor):
-#    
-#    """Show total mem usage on one axes."""
-#    
-#    ylabel = 'Bytes'
-#    
-#    def project_y(self, p):
-#        return self.project_mem(p)
-#
-#
 #class NormalizedExtractor(SimpleExtractor):
 #    
 #    """Base class for extractors that normalize (e.g. by subtraction

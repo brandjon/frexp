@@ -13,10 +13,6 @@ from frexp.workflow import Task
 
 class Plotter(Task):
     
-    # The use of two out files, for png and pdf, is a bit hackish.
-    # Should rework how ExperimentWorkflow instantiates its Tasks,
-    # and how Tasks deal with their input and output files.
-    
     def run(self):
         # Delay the import until here so if matplotlib can't be loaded
         # we can still do the rest of the testing.

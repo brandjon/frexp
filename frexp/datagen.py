@@ -10,6 +10,7 @@ import os
 import glob
 import pickle
 
+from frexp.util import StopWatch
 from frexp.workflow import Task
 
 
@@ -18,8 +19,6 @@ class Datagen(Task):
     """Abstract base class for generating datasets. Subclasses
     should override progs, get_dsparams_list(), and generate().
     """
-    
-    show_time = True
     
     @property
     def progs(self):
@@ -31,9 +30,15 @@ class Datagen(Task):
         dataset params objects. By default, just cross-product with
         the progs list.
         """
-        return [dict(dsid = dsp['dsid'], prog = prog)
-                for prog in self.progs
-                for dsp in dsparams_list]
+        return [
+            dict(
+                tid = dsp['dsid'],
+                dsid = dsp['dsid'],
+                prog = prog,
+            )
+            for prog in self.progs
+            for dsp in dsparams_list
+        ]
     
     def get_dsparams_list(self):
         """Return a list of dataset params object."""
@@ -50,17 +55,19 @@ class Datagen(Task):
         """
         return [self.generate(dsparams)]
     
-    def run(self):
+    def _run(self):
         # Determine dataset parameters.
         dsparams_list = list(self.get_dsparams_list())
+        
+        os.makedirs(self.workflow.ds_dirname, exist_ok=True)
+        total_size = 0
         seen_dsids = set()
         
         # Generate datasets, save to files.
-        os.makedirs(self.workflow.ds_dirname, exist_ok=True)
-        total_size = 0
         for i, dsp in enumerate(dsparams_list, 1):
-            itemstring = 'Generating for params {:<10} ({} of {})...'.format(
-                         dsp['dsid'], i, len(dsparams_list))
+            itemstring = (
+                '  Generating for params {:<10} ({} of {})...'.format(
+                dsp['dsid'], i, len(dsparams_list)))
             self.print(itemstring, end='')
             ds_list = self.generate_multiple(dsp)
             
@@ -83,13 +90,18 @@ class Datagen(Task):
         # Generate trials, save to file.
         out_fn = self.workflow.params_filename
         tparams_list = self.get_tparams_list(dsparams_list)
-        self.print('Writing ' + out_fn + ' ...')
         with open(out_fn, 'wb') as outfile:
             pickle.dump(tparams_list, outfile)
     
+    def run(self):
+        self.print('Generating test data...')
+        with StopWatch() as w:
+            self._run()
+        self.print('(Datagen time: {:.3f} seconds)'.format(w.elapsed))
+    
     def cleanup(self):
         # Remove dataset files, dataset dir, and params file.
-        ds_files = glob.glob(self.workflow.ds_filename_pattern)
+        ds_files = glob.glob(self.workflow.ds_filename_glob)
         for dsf in ds_files:
             self.remove_file(dsf)
         self.remove_file(self.workflow.ds_dirname)
