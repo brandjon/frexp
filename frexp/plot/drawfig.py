@@ -99,7 +99,7 @@ def do_plot_helper(plot):
     if config['max_xitvls']:
         ax.xaxis.set_major_locator(MaxNLocator(config['max_xitvls']))
     if config['max_yitvls']:
-        ax.yaxis.set_major_locator(MaxNLocator(config['max_xitvls']))
+        ax.yaxis.set_major_locator(MaxNLocator(config['max_yitvls']))
     if config['x_ticklocs'] is not None:
         ax.xaxis.set_major_locator(FixedLocator(config['x_ticklocs']))
     if config['y_ticklocs'] is not None:
