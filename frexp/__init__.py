@@ -9,6 +9,7 @@ from .workflow import *
 from .datagen import *
 from .runner import *
 from .driver import *
+from .verifier import *
 from .extractor import *
 from .plot import *
 from .plotter import *

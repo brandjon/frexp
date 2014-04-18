@@ -1,120 +1,24 @@
 """Ensure that the output produced by each test program is identical."""
 
 
-from copy import deepcopy
+__all__ = [
+    'Verifier',
+]
+
+
 import pickle
-import gc
 from itertools import groupby
+from operator import itemgetter
+import os
+from multiprocessing import Process
 
-from frexp.driver import Driver
-from frexp.runner import Runner
-
-
-def canonize(tree):
-    """Recursively convert helper types into standard Python types.
-    The tree may consist of the following types:
-    
-      Python types (left as-is):
-        - None, ints, floats, strings
-        - lists, sets, dicts, tuples
-      
-      runtimelib types:
-        - Set and RCSet get replaced by Python sets
-        - Obj gets replaced by a frozenset of key/value tuples
-          from its __dict__, excluding attributes that begin with one
-          or more underscores
-      
-      osq types:
-        - RCSet gets replaced by a Python set
-    
-    Aliasing is not preserved.
-    
-    The purpose of this function is to create a nearly semantically
-    equivalent value that can be compared for equality with other
-    values. This is needed because the transformed program uses
-    helper types that are similar to, but not identical to, their
-    corresponding basic Python types.
-    """
-    import runtimelib
-    import osq
-    
-    if isinstance(tree, (runtimelib.Set, runtimelib.RCSet, osq.incr.RCSet)):
-        result = set(canonize(v) for v in tree)
-    
-    elif isinstance(tree, runtimelib.Obj):
-        result = frozenset((canonize(k), canonize(v))
-                           for k, v in tree.__dict__.items()
-                           if not k.startswith('_'))
-    
-    elif isinstance(tree, (type(None), int, float, str, bool)):
-        result = tree
-    
-    elif isinstance(tree, (list, set, tuple)):
-        result = type(tree)(canonize(v) for v in tree)
-    
-    elif isinstance(tree, dict):
-        result = type(tree)(canonize(v) for v in tree.items())
-    
-    else:
-        raise ValueError('Un-canonizable type: ' + str(type(tree)))
-    
-    assert not type(result).__module__ in ['runtimelib.runtimelib', 'osq.incr']
-    
-    return result
+from frexp.workflow import Task
 
 
-class VerifyDriver(Driver):
+class Verifier(Task):
     
-    """Instead of recording test metrics like time and space, record
-    the metric of program output. Specifically, record the values
-    returned by operations. Value types must be picklable.
-    """
-    
-    def sanitize(self, tree):
-        """Turn an operation return value into something safe to
-        store and compare.
-        """
-        # Convert runtimelib types back to Python types if possible,
-        # for equality comparison purposes. Deepcopy just to be
-        # super safe in avoiding hard-to-track bugs, although it
-        # shouldn't be necessary because canonize() makes a copy.
-        tree = canonize(tree)
-        tree = deepcopy(tree)
-        return tree
-    
-    def execute_ops(self):
-        """Record a single metric: output, as a string."""
-        res = {}
-        
-        init_seqdata = {'output': []}
-        
-        for opseq in self.opseqs:
-            ops = opseq['ops']
-            reps = opseq['reps']
-            for _ in range(reps):
-                for op in ops:
-                    seq_name, func, *args = op
-                    
-                    if seq_name == 'GET_SPACE_USAGE':
-                        continue
-                    
-                    seq_data = res.setdefault(seq_name, deepcopy(init_seqdata))
-                    
-                    r = func(*args)
-                    r = self.sanitize(r)
-                    
-                    seq_data['output'].append(r)
-        
-        self.result_data = {}
-        self.result_data['seqs'] = res
-        self.result_data['sizes'] = {}
-        self.result_data['memory'] = 0
-
-
-class Verifier(Runner):
-    
-    """Similar to the standard Runner, but do comparison work as
-    each test result comes back and stop at the first failure.
+    """Run each test once and ensure that different progs agree
+    on the results.
     """
     
     # At any given time, we only hold onto the current test result
@@ -127,56 +31,71 @@ class Verifier(Runner):
     # based or sort-based equality. This would probably require a
     # recursive traversal, similar to how canonization is done. 
     
+    require_ac = False
+    
     @property
     def drivermain(self):
-        return main
+        raise NotImplementedError
     
-    def run_all_tests(self, tparams_list):
-        """Run all tests."""
+    # Copied from Runner, should refactor.
+    
+    def dispatch_test(self, dataset, prog, other_tparams):
+        """Spawn a driver process and get its result."""
+        # Communicate the dataset and results via a temporary
+        # pipe file.
+        pipe_fn = self.workflow.pipe_filename
+        with open(pipe_fn, 'wb') as pf:
+            pickle.dump((dataset, prog, other_tparams), pf)
         
-        # Group trials by dataset id.
-        tparams_list.sort(key=lambda t: t['dsid'])
-        groups = groupby(tparams_list, key=lambda t: t['dsid'])
+        child = Process(target=self.drivermain, args=(pipe_fn,))
+        child.start()
         
-        current = 0
-        total = len(tparams_list)
-        for dsid, tparams_sublist in groups:
-            goal = None
-            
-            for trial in tparams_sublist:
-                current += 1
-                self.print('Verifying test {} of {} '
-                           '...'.format(current, total))
-                datapoint = self.run_single_test(trial)
-                if goal is None:
-                    goal = datapoint['results']
-                else:
-                    if goal != datapoint['results']:
-                        self.print('Output disagrees for dataset ' +
-                                   str(dsid))
-                        self.print('  params: ' + str(datapoint['dsparams']))
-                        return
+        child.join()
+        with open(pipe_fn, 'rb') as pf:
+            results = pickle.load(pf)
         
-        print('Output agrees on all datasets.')
-        return
+        os.remove(pipe_fn)
+        return results
     
     def run(self):
-        with open(self.in_filename, 'rb') as in_file:
+        with open(self.workflow.params_filename, 'rb') as in_file:
             tparams_list = pickle.load(in_file)
         
-        self.run_all_tests(tparams_list)
+        tparams_list.sort(key=itemgetter('tid'))
+        tgroups = groupby(tparams_list, itemgetter('tid'))
+        tgroups = [(tid, list(tgs)) for tid, tgs in tgroups]
         
+        for i, (tid, tgs) in enumerate(tgroups):
+            itemstr = 'Verifying trial group {:<10} ({}/{})\n  '.format(
+                        tid + ' ...', i, len(tgroups))
+            self.print(itemstr, end='')
+            goal = None
+            goalprog = None
+            for trial in tgs:
+                trial = dict(trial)
+                dsid = trial.pop('dsid')
+                prog = trial.pop('prog')
+                
+                self.print(prog, end='  ')
+                
+                ds_fn = self.workflow.get_ds_filename(dsid)
+                with open(ds_fn, 'rb') as dsfile:
+                    dataset = pickle.load(dsfile)
+                
+                output = self.dispatch_test(dataset, prog, trial)
+                
+                if goal is None:
+                    goal = output
+                    goalprog = prog
+                else:
+                    if output != goal:
+                        self.print('Output disagrees for trial group ' + tid)
+                        self.print('  params: ' + str(dataset['dsparams']))
+                        self.print('  goalprog: {}, prog: {}'.format(
+                                   goalprog, prog))
+                        return
+            
+            self.print()
+        
+        self.print('Output agrees on all datasets.')
         self.print('Done.')
-
-
-def main(pipe_filename):
-    gc.disable()
-    
-    with open(pipe_filename, 'rb') as pf:
-        dataset, prog = pickle.load(pf)
-    
-    driver = VerifyDriver(dataset, prog)
-    results = driver.run()
-    
-    with open(pipe_filename, 'wb') as pf:
-        pickle.dump(results, pf)
