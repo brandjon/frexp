@@ -29,3 +29,7 @@ class Plotter(Task):
         save_figure(plotdata, self.workflow.pdf_filename)
         draw_figure(plotdata)
         self.print('Done.')
+    
+    def cleanup(self):
+        self.remove_file(self.workflow.png_filename)
+        self.remove_file(self.workflow.pdf_filename)

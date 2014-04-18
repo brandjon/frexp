@@ -93,6 +93,9 @@ class Datagen(Task):
         ds_files = glob.glob(self.workflow.ds_filename_pattern)
         for dsf in ds_files:
             self.remove_file(dsf)
-        os.rmdir(self.workflow.ds_dirname)
+        try:
+            os.rmdir(self.workflow.ds_dirname)
+        except FileNotFoundError:
+            pass
         
         self.remove_file(self.workflow.params_filename)

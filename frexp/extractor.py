@@ -211,6 +211,9 @@ class Extractor(Task):
             pickle.dump(plotdata, out_file)
         
         self.print('Done.')
+    
+    def cleanup(self):
+        self.remove_file(self.workflow.plotdata_filename)
 
 
 class SimpleExtractor(Extractor):
