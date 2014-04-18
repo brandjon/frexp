@@ -3,9 +3,7 @@
 
 __all__ = [
     'StopWatch',
-    
     'on_battery_power',
-    
     'get_mem_usage',
 ]
 
@@ -121,7 +119,8 @@ def on_battery_power():
 
 def get_mem_usage():
     """Return total process memory usage, in bytes.
-    Requires Windows.
+    Requires the psutil package (https://code.google.com/p/psutil/);
+    returns 0 if not available.
     """
     try:
         import psutil

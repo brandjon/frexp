@@ -89,13 +89,8 @@ class Datagen(Task):
     
     def cleanup(self):
         # Remove dataset files, dataset dir, and params file.
-        
         ds_files = glob.glob(self.workflow.ds_filename_pattern)
         for dsf in ds_files:
             self.remove_file(dsf)
-        try:
-            os.rmdir(self.workflow.ds_dirname)
-        except FileNotFoundError:
-            pass
-        
+        self.remove_file(self.workflow.ds_dirname)
         self.remove_file(self.workflow.params_filename)

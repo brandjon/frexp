@@ -37,11 +37,15 @@ class Task:
         pass
     
     def remove_file(self, filepath):
-        """If filepath exists, remove the file and print a message.
-        If it doesn't exist, ignore.
+        """If filepath exists, delete it and print a message.
+        Otherwise, ignore. filepath may also point to an empty
+        directory.
         """
         try:
-            os.remove(filepath)
+            if os.path.isdir(filepath):
+                os.rmdir(filepath)
+            else:
+                os.remove(filepath)
             self.print('Removed ' + filepath)
         except FileNotFoundError:
             pass
