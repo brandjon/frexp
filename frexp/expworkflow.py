@@ -10,7 +10,7 @@ import sys
 
 from frexp.workflow import Workflow
 from frexp.runner import Runner
-from frexp.verify import Verifier
+from frexp.verifier import Verifier
 from frexp.plotter import Plotter
 
 

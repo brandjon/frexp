@@ -16,8 +16,9 @@ from frexp.workflow import Task
 
 class Datagen(Task):
     
-    """Abstract base class for generating datasets. Subclasses
-    should override progs, get_dsparams_list(), and generate().
+    """Abstract base class for generating datasets and test parameters.
+    Subclasses should override progs, get_dsparams_list(), and
+    generate().
     """
     
     @property
@@ -87,7 +88,7 @@ class Datagen(Task):
         
         self.print('Total dataset size: {:,} bytes'.format(total_size))
         
-        # Generate trials, save to file.
+        # Generate test params, save to file.
         out_fn = self.workflow.params_filename
         tparams_list = self.get_tparams_list(dsparams_list)
         with open(out_fn, 'wb') as outfile:
@@ -97,7 +98,7 @@ class Datagen(Task):
         self.print('Generating test data...')
         with StopWatch() as w:
             self._run()
-        self.print('(Datagen time: {:.3f} seconds)'.format(w.elapsed))
+        self.print('(Generation time: {:.3f} seconds)'.format(w.elapsed))
     
     def cleanup(self):
         # Remove dataset files, dataset dir, and params file.
