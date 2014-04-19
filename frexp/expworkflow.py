@@ -34,6 +34,15 @@ class ExperimentWorkflow(Workflow):
     """If y is below this value, don't worry about standard deviation
     stabilizing. Just run min times.
     """
+    do_repeats = True
+    """Set False to skip converging altogether."""
+    
+    # This has saved me countless times from accidentally running
+    # tests on power-saving procesor speed.
+    require_ac = True
+    """If True, abort benchmarking if known to be running on battery
+    power.
+    """
     
     @property
     def ds_dirname(self):
@@ -51,7 +60,7 @@ class ExperimentWorkflow(Workflow):
     
     @property
     def params_filename(self):
-        """Filename for list of trial params."""
+        """Filename for list of test params."""
         return self.prefix + '_params.pickle'
     
     @property
@@ -101,6 +110,20 @@ class ExperimentWorkflow(Workflow):
         raise NotImplementedError
     
     ExpPlotter = Plotter
+    
+    @property
+    def ExpDriver(self):
+        """Function or class to call in the child process to run a
+        benchmark. Must be pickleable.
+        """
+        raise NotImplementedError
+    
+    @property
+    def ExpVerifyDriver(self):
+        """Function or class to call in the child process to verify
+        results. Must be pickleable.
+        """
+        raise NotImplementedError
     
     def __init__(self, prefix, fout=sys.stdout):
         super().__init__('results/' + prefix, fout=fout)

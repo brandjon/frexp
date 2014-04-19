@@ -25,19 +25,6 @@ class Runner(Task):
     # Each invocation of the driver is done as a separate process,
     # so that there is no chance of contamination between tests.
     
-    # This has saved me countless times from accidentally running
-    # tests on power-saving procesor speed.
-    require_ac = True
-    
-    do_repeats = False
-    
-    @property
-    def drivermain(self):
-        """Return the function to call in the child process to begin
-        the driver. Must be pickleable.
-        """
-        raise NotImplementedError
-    
     ### TODO: Optimize to pass in dsid directly to child,
     ### instead of copying from ds file to pipe.
     
@@ -49,7 +36,7 @@ class Runner(Task):
         with open(pipe_fn, 'wb') as pf:
             pickle.dump((dataset, prog, other_tparams), pf)
         
-        child = Process(target=self.drivermain, args=(pipe_fn,))
+        child = Process(target=self.workflow.ExpDriver, args=(pipe_fn,))
         child.start()
         
         child.join()
@@ -82,7 +69,7 @@ class Runner(Task):
         deviation and min-repeats requirements, as measured
         by 'all' seq process time. Return all datapoints.
         """
-        if not self.do_repeats:
+        if not self.workflow.do_repeats:
             self.print()
             return [self.run_single_test(trial)]
         
@@ -134,7 +121,7 @@ class Runner(Task):
         return datapoint_list
     
     def run(self):
-        if self.require_ac and on_battery_power():
+        if self.workflow.require_ac and on_battery_power():
             raise AssertionError('AC Power required for benchmarking')
         
         with open(self.workflow.params_filename, 'rb') as in_file:

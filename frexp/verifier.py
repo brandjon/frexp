@@ -31,12 +31,6 @@ class Verifier(Task):
     # based or sort-based equality. This would probably require a
     # recursive traversal, similar to how canonization is done. 
     
-    require_ac = False
-    
-    @property
-    def drivermain(self):
-        raise NotImplementedError
-    
     # Copied from Runner, should refactor.
     
     def dispatch_test(self, dataset, prog, other_tparams):
@@ -47,7 +41,7 @@ class Verifier(Task):
         with open(pipe_fn, 'wb') as pf:
             pickle.dump((dataset, prog, other_tparams), pf)
         
-        child = Process(target=self.drivermain, args=(pipe_fn,))
+        child = Process(target=self.workflow.ExpVerifyDriver, args=(pipe_fn,))
         child.start()
         
         child.join()
