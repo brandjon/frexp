@@ -2,17 +2,19 @@
 
 
 __all__ = [
-    'ExperimentWorkflow',
+    'ExpWorkflow',
 ]
 
 
 import sys
 
 from frexp.workflow import Workflow
+from frexp.runner import Runner
+from frexp.verify import Verifier
 from frexp.plotter import Plotter
 
 
-class ExperimentWorkflow(Workflow):
+class ExpWorkflow(Workflow):
     
     """Workflow describing the setup, execution, and analysis of
     an experiment.
@@ -101,14 +103,8 @@ class ExperimentWorkflow(Workflow):
     def ExpExtractor(self):
         raise NotImplementedError
     
-    @property
-    def ExpRunner(self):
-        raise NotImplementedError
-    
-    @property
-    def ExpVerifier(self):
-        raise NotImplementedError
-    
+    ExpRunner = Runner
+    ExpVerifier = Verifier
     ExpPlotter = Plotter
     
     @property
