@@ -3,6 +3,7 @@
 
 __all__ = [
     'StopWatch',
+    'user_time',
     'on_battery_power',
     'get_mem_usage',
 ]
@@ -77,6 +78,10 @@ class StopWatch:
     
     def __exit__(self, exc_type, exc_value, traceback):
         self.stop()
+
+
+def user_time():
+    return os.times()[0]
 
 
 def on_battery_power():
