@@ -11,7 +11,7 @@ import sys
 from frexp.workflow import Workflow
 from frexp.runner import Runner
 from frexp.verifier import Verifier
-from frexp.plotter import Plotter
+from frexp.viewer import Plotter
 
 
 class ExpWorkflow(Workflow):
@@ -105,7 +105,7 @@ class ExpWorkflow(Workflow):
     
     ExpRunner = Runner
     ExpVerifier = Verifier
-    ExpPlotter = Plotter
+    ExpViewer = Plotter
     
     @property
     def ExpDriver(self):
@@ -128,14 +128,14 @@ class ExpWorkflow(Workflow):
         self.runner = self.ExpRunner(self)
         self.verifier = self.ExpVerifier(self)
         self.extractor = self.ExpExtractor(self)
-        self.plotter = self.ExpPlotter(self)
+        self.viewer = self.ExpViewer(self)
         
         self.tasks = [
             self.datagen,
             self.runner,
 #            self.verifier,
             self.extractor,
-            self.plotter,
+            self.viewer,
         ]
     
     def generate(self):
@@ -150,5 +150,5 @@ class ExpWorkflow(Workflow):
     def extract(self):
         self.extractor.run()
     
-    def plot(self):
-        self.plotter.run()
+    def view(self):
+        self.viewer.run()

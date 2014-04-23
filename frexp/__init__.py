@@ -10,5 +10,5 @@ from .datagen import *
 from .runner import *
 from .verifier import *
 from .extractor import *
-from .plotter import *
+from .viewer import *
 from .expworkflow import *
