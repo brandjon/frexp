@@ -31,8 +31,9 @@ def parse_style(style):
         markerformat: matplotlib marker style, optionally prefixed
           by '_' for hollow markers
         
-        seriesformat: 'normal' for connect-the-dots, 'line' for
-          line-of-best-fit, 'points' for point cloud with no lines 
+        seriesformat: 'normal' for connect-the-dots, 'polyN' for
+          polynomial fit of degree N, 'points' for point cloud
+          with no lines 
     """
     lf, mf, series_format = style.split()
     
@@ -148,28 +149,37 @@ class Extractor(Task):
         """
         raise NotImplementedError
     
-    def project_and_average(self, datapoints):
-        """Given datapoints, project and average the x and y coords
-        to get back xy points with error data.
+    def project_data(self, datapoints):
+        """Given datapoints, apply the projection function to get
+        (x, y) coordinates.
         """
-        points = [(self.project_x(p), self.project_y(p))
-                  for p in datapoints]
-        points = self.average_points(points, self.discard_ratio)
+        return [(self.project_x(p), self.project_y(p))
+                for p in datapoints]
+    
+    def project_and_average_data(self, datapoints, average):
+        """Given datapoints, project and optionally average."""
+        xy = self.project_data(datapoints)
+        if average:
+            points = self.average_points(xy, self.discard_ratio)
+        else:
+            points = [(x, y, 0, 0) for (x, y) in xy]
         return points
     
-    def get_series_points(self, datapoints, sid):
+    def get_series_points(self, datapoints, sid, *,
+                          average):
         """Given datapoints and a series id, return a list of
-        points with error data.
+        (x, y) points with error data.
         """
         data = self.get_series_data(datapoints, sid)
-        points = self.project_and_average(data)
+        points = self.project_and_average_data(datapoints, average=average)
         return points
     
     def get_series(self):
         results = []
         for sid, dispname, color, style in self.series:
-            data = self.get_series_points(self.data, sid)
             style, hollow_markers, series_format = parse_style(style)
+            data = self.get_series_points(self.data, sid,
+                                          average=(series_format != 'points'))
             results.append(dict(
                 name = dispname,
                 style = style,

@@ -138,3 +138,4 @@ class Runner(Task):
     
     def cleanup(self):
         self.remove_file(self.workflow.data_filename)
+        self.remove_file(self.workflow.pipe_filename)
