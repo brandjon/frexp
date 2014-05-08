@@ -171,7 +171,7 @@ class Extractor(Task):
         (x, y) points with error data.
         """
         data = self.get_series_data(datapoints, sid)
-        points = self.project_and_average_data(datapoints, average=average)
+        points = self.project_and_average_data(data, average=average)
         return points
     
     def get_series(self):
@@ -244,7 +244,7 @@ class MetricExtractor(SimpleExtractor):
     """
     
     metric = None
-    """Metric to plot, e.g. 'ttltime_cpu'."""
+    """Metric to plot, e.g. 'time_cpu'."""
     
     def project_y(self, p):
         """Grab y value from datapoint. Can be overridden e.g.
