@@ -138,14 +138,18 @@ Plot data:
             ...
             ],
         ],
+        "rcparams_file": <path>,
+        "rcparams": {
+            key: value,
+            ...
+        },
         "config": {
-            key: value
+            key: value,
+            ...
             // valid keys include:
-            //   fontsize, legfontsize,
-            //   xmin, xmax, ymin, ymax,
-            //   linewidth, markersize,
-            //   ticksize, tickwidth,
-            //   figsize, max_xitvls, max_yitvls,
-            //   x_ticklocs, y_ticklocs
+            //   figsize, 
+            //   xmin, xmax, ymin, ymax,  
+            //   max_xitvls, max_yitvls,
+            //   x_ticklocs, y_ticklocs,
         },
     }

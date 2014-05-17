@@ -61,28 +61,15 @@ def do_plot(plot, xkcd=False):
         do_plot_helper(plot)
 
 def do_plot_helper(plot):
-    title, axes, config = plot['plot_title'], plot['axes'], plot['config']
+    title, axes = plot['plot_title'], plot['axes']
+    rcparams_file, rcparams = plot['rcparams_file'], plot['rcparams']
+    config = plot['config']
     
-    if config['fontsize'] is not None:
-        matplotlib.rcParams['font.size'] = config['fontsize']
-    if config['legfontsize'] is not None:
-        matplotlib.rcParams['legend.fontsize'] = config['legfontsize']
-    if config['linewidth'] is not None:
-        matplotlib.rcParams['lines.linewidth'] = config['linewidth']
-    if config['markersize'] is not None:
-        matplotlib.rcParams['lines.markersize'] = config['markersize']
-    if config['ticksize'] is not None:
-        ts = config['ticksize']
-        matplotlib.rcParams['xtick.major.size'] = ts
-        matplotlib.rcParams['ytick.major.size'] = ts
-        matplotlib.rcParams['xtick.major.size'] = ts / 2
-        matplotlib.rcParams['ytick.major.size'] = ts / 2
-    if config['tickwidth'] is not None:
-        tw = config['tickwidth']
-        matplotlib.rcParams['xtick.major.width'] = tw
-        matplotlib.rcParams['ytick.major.width'] = tw
-        matplotlib.rcParams['xtick.minor.width'] = tw
-        matplotlib.rcParams['ytick.minor.width'] = tw
+    if rcparams_file is not None:
+        matplotlib.rc_file(rcparams_file)
+    if rcparams is not None:
+        matplotlib.rcParams.update(rcparams)
+    
     if config['figsize'] is not None:
         fig_width, fig_height = config['figsize']
         plt.gcf().set_size_inches(fig_width, fig_height, forward=True)

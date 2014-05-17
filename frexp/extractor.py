@@ -54,18 +54,19 @@ class Extractor(Task):
     for retrieving and manipulating data points.
     """
     
-    # Default display characteristics.
-    fontsize = 36
-    legfontsize = 20
+    # Override to alter display characteristics.
+    rcparams_file = None
+    """Path to matplotlib rc file."""
+    rcparams = None
+    """Dictionary of key/value overrides to apply on top
+    of rc file.
+    """
+    
+    figsize = None
     xmin = None
     xmax = None
     ymin = None
     ymax = None
-    linewidth = 2
-    markersize = 10
-    ticksize = 16
-    tickwidth = 2
-    figsize = (12, 9)
     max_xitvls = None
     max_yitvls = None
     x_ticklocs = None
@@ -73,14 +74,11 @@ class Extractor(Task):
     
     @property
     def config(self):
-        return {k: getattr(self, k)
-                for k in [
-            'fontsize', 'legfontsize',
-            'xmin', 'xmax', 'ymin', 'ymax',
-            'linewidth', 'markersize', 'ticksize', 'tickwidth',
-            'figsize', 'max_xitvls', 'max_yitvls',
-            'x_ticklocs', 'y_ticklocs',
-        ]}
+        return {key: getattr(self, key)
+                for key in ['figsize',
+                            'xmin', 'xmax', 'ymin', 'ymax',
+                            'max_xitvls', 'max_yitvls',
+                            'x_ticklocs', 'y_ticklocs']}
     
     def average_points(self, xy, discard_ratio):
         """Given a list of (x, y) pairs, return a list of quadruples
@@ -205,6 +203,8 @@ class Extractor(Task):
                 scalary = self.scalary,
                 series = self.get_series(),
             )],
+            rcparams_file = self.rcparams_file,
+            rcparams = self.rcparams,
             config = self.config,
         )
     
