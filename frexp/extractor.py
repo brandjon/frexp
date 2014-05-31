@@ -71,6 +71,7 @@ class Extractor(Task):
     max_yitvls = None
     x_ticklocs = None
     y_ticklocs = None
+    legend_ncol = None
     
     @property
     def config(self):
@@ -201,6 +202,7 @@ class Extractor(Task):
                 logy = self.logy,
                 scalarx = self.scalarx,
                 scalary = self.scalary,
+                legend_ncol = self.legend_ncol,
                 series = self.get_series(),
             )],
             rcparams_file = self.rcparams_file,

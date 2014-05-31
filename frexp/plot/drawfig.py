@@ -92,13 +92,14 @@ def do_plot_helper(plot):
     if config['y_ticklocs'] is not None:
         ax.yaxis.set_major_locator(FixedLocator(config['y_ticklocs']))
     
-    plt.subplots_adjust(bottom=.15, left=.15)
+    plt.tight_layout()
 
 def do_axes(ax):
     title, series = ax['axes_title'], ax['series']
     logx, logy = ax['logx'], ax['logy']
     ylabel, xlabel = ax['ylabel'], ax['xlabel']
     scalarx, scalary = ax['scalarx'], ax['scalary']
+    legend_ncol = ax['legend_ncol']
     if title:
         plt.title(title)
     if ylabel:
@@ -113,6 +114,8 @@ def do_axes(ax):
         plt.gca().xaxis.set_major_formatter(ScalarFormatter())
     if scalary:
         plt.gca().yaxis.set_major_formatter(ScalarFormatter())
+    if legend_ncol is None:
+        legend_ncol = 1
     
     leg_artists = []
     leg_texts = []
@@ -122,7 +125,7 @@ def do_axes(ax):
             leg_artists.append(la)
             leg_texts.append(lt)
     
-    plt.legend(leg_artists, leg_texts, loc='upper left')
+    plt.legend(leg_artists, leg_texts, loc='upper left', ncol=legend_ncol)
 
 def do_series(ser):
     name, style, color = ser['name'], ser['style'], ser['color']

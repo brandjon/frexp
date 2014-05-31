@@ -122,6 +122,7 @@ Plot data:
                 "logy": <bool>,
                 "scalarx": <bool>,
                 "scalary": <bool>,
+                "legend_ncol": <int or None>,
                 "series": [
                     {
                         "name": <string>,
