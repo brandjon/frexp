@@ -14,6 +14,8 @@ from frexp.workflow import Task
 
 class Printer(Task):
     
+    transpose = False
+    
     def run(self):
         # Delay the import.
         from tabulate import tabulate
@@ -53,6 +55,11 @@ class Printer(Task):
                         y = self.round_y(y)
                     row += [y]
                 data.append(row)
+            
+            if self.transpose:
+                h, w = len(data), len(data[0])
+                data = [[data[y][x] for y in range(h)]
+                        for x in range(w)]
             print(tabulate(data))
 
 
