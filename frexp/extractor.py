@@ -6,7 +6,7 @@ __all__ = [
     'SimpleExtractor',
     'MetricExtractor',
     'TotalSizeExtractor',
-#    'NormalizedExtractor',
+    'NormalizedExtractor',
 ]
 
 
@@ -265,47 +265,37 @@ class TotalSizeExtractor(SimpleExtractor):
         return p['results']['size']
 
 
-
-#class NormalizedExtractor(SimpleExtractor):
-#    
-#    """Base class for extractors that normalize (e.g. by subtraction
-#    or division) the results for their series relative to a specific
-#    series.
-#    
-#    Since normalization operates on the average value, error bar
-#    output is not allowed.
-#    """
-#    
-#    base_prog = None
-#    base_series = None
-#    
-#    error_bars = False
-#    
-#    def normalize(self, pre_y, base_y):
-#        """Return the normalized value of pre_y relative to base_y."""
-#        raise NotImplementedError
-#    
-#    @property
-#    def series_info(self):
-#        return [e for e in super().series_info
-#                  if not (e[0:2] == (self.base_prog, self.base_series))]
-#    
-#    def get_series_data(self, prog, series):
-#        """Return the series data tuples for the specified parameters."""
-#        points = self.select_prog_series(self.data, prog, series)
-#        xy_data = [self.make_xy(p) for p in points]
-#        pre_result = self.simple_avg(xy_data)
-#        
-#        base_points = self.select_prog_series(
-#                        self.data, self.base_prog, self.base_series)
-#        base_xy_data = [self.make_xy(p) for p in base_points]
-#        base_avg_data = self.simple_avg(base_xy_data)
-#        
-#        result_xy = []
-#        assert len(pre_result) == len(base_avg_data)
-#        for (pre_x, pre_y), (base_x, base_y) in zip(pre_result, base_avg_data):
-#            assert pre_x == base_x
-#            result_y = self.normalize(pre_y, base_y)
-#            result_xy.append((pre_x, result_y))
-#        
-#        return result_xy
+class NormalizedExtractor(SimpleExtractor):
+    
+    """Base class for extractors that normalize (e.g. by subtraction
+    or division) the results for their series relative to a specific
+    series.
+    
+    Since normalization operates on the average value, error bar
+    output is not allowed.
+    """
+    
+    base_sid = None
+    
+    error_bars = False
+    
+    def normalize(self, pre_y, base_y):
+        """Return the normalized value of pre_y relative to base_y."""
+        raise NotImplementedError
+    
+    def get_series_points(self, datapoints, sid, *,
+                          average):
+        """Given datapoints and a series id, return a list of
+        (x, y) points with error data.
+        """
+        # Don't show base series.
+        if sid == self.base_sid:
+            return []
+        
+        base_points = super().get_series_points(datapoints, self.base_sid,
+                                                average=False)
+        sid_points = super().get_series_points(datapoints, sid,
+                                               average=False)
+        return [(x / base_x, y / base_y, 0, 0)
+                for (x, y, _, _), (base_x, base_y, _, _) in
+                    zip(sid_points, base_points)]
