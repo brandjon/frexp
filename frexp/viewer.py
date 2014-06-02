@@ -42,12 +42,18 @@ class Printer(Task):
                     curdata[x] = y
             
             xs = sorted(all_xs)
-            data = []
+            data = [[ax['xlabel']] + series_names]
             for x in xs:
                 row = [x]
-                row += [series_data[name][x] for name in series_names]
+                for name in series_names:
+                    y = series_data[name].get(x, None)
+                    if y is None:
+                        y = ''
+                    else:
+                        y = self.round_y(y)
+                    row += [y]
                 data.append(row)
-            tabulate(data)
+            print(tabulate(data))
 
 
 class Plotter(Task):
