@@ -121,8 +121,8 @@ class ExpWorkflow(Workflow):
         """
         raise NotImplementedError
     
-    def __init__(self, prefix, fout=sys.stdout):
-        super().__init__('results/' + prefix, fout=fout)
+    def __init__(self, prefix=None, fout=sys.stdout):
+        super().__init__(prefix, fout=fout)
         
         self.datagen = self.ExpDatagen(self)
         self.runner = self.ExpRunner(self)

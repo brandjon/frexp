@@ -48,9 +48,15 @@ class Workflow:
     
     """Workflow, comprising a series of tasks to execute."""
     
-    def __init__(self, prefix, fout=sys.stdout):
-        self.prefix = prefix
-        """Prefix (including path) for generated file names."""
+    prefix = None
+    """Prefix (including path) for generated file names.
+    Can be overridden in constructor.
+    """
+    
+    def __init__(self, prefix=None, fout=sys.stdout):
+        if prefix is not None:
+            self.prefix = prefix
+        
         self.fout = fout
         """Output stream for status updates."""
         
