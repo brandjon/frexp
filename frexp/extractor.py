@@ -296,6 +296,11 @@ class NormalizedExtractor(SimpleExtractor):
                                                 average=False)
         sid_points = super().get_series_points(datapoints, sid,
                                                average=False)
-        return [(x / base_x, y / base_y, 0, 0)
-                for (x, y, _, _), (base_x, base_y, _, _) in
-                    zip(sid_points, base_points)]
+        
+        points = []
+        for (x, y, _, _), (base_x, base_y, _, _) in \
+                zip(sid_points, base_points):
+            assert x == base_x
+            adjusted_y = self.normalize(y, base_y)
+            points.append((x, adjusted_y, 0, 0))
+        return points
