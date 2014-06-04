@@ -40,7 +40,7 @@ class Printer(Task):
                 series_data[name] = curdata = {}
                 for (x, y, _lo, _hi) in s['data']:
                     all_xs.add(x)
-                    assert y not in curdata, 'Multiple values for same point'
+                    assert x not in curdata, 'Multiple values for same point'
                     curdata[x] = y
             
             xs = sorted(all_xs)

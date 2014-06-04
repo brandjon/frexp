@@ -293,9 +293,9 @@ class NormalizedExtractor(SimpleExtractor):
             return []
         
         base_points = super().get_series_points(datapoints, self.base_sid,
-                                                average=False)
+                                                average=True)
         sid_points = super().get_series_points(datapoints, sid,
-                                               average=False)
+                                               average=True)
         
         points = []
         for (x, y, _, _), (base_x, base_y, _, _) in \
