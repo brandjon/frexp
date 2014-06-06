@@ -40,6 +40,9 @@ class Runner(Task):
         child.start()
         
         child.join()
+        if child.exitcode != 0:
+            raise ValueError('Child failed with exit code ' +
+                             str(child.exitcode))
         with open(pipe_fn, 'rb') as pf:
             results = pickle.load(pf)
         
