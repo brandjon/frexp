@@ -81,6 +81,8 @@ class Runner(Task):
             datapoints = []
             times = []
             
+            timedout = False
+            
             min = self.workflow.min_repeats
             max = self.workflow.max_repeats
             window = self.workflow.stddev_window
@@ -102,16 +104,27 @@ class Runner(Task):
                     self.print('\n' + statusstr, end='')
                 self.print('. ', end='')
                 dp = self.run_single_test(trial)
+                
+                if 'timedout' in dp['results'] and dp['results']['timedout']:
+                    timedout = True
+                    break
+                
                 datapoints.append(dp)
                 times.append(dp['results']['stdmetric'])
             
-            if len(times) == max and not stabilized():
+            if timedout:
+                if len(datapoints) > 0:
+                    self.print('Warning: Discarding trials due to timeout')
+                else:
+                    self.print('Timed out')
+                
+            elif len(times) == max and not stabilized():
                 self.print('Warning: Did not converge '
                            '(std={}, mean={})'.format(
                            np.std(times), np.mean(times)))
             self.print()
             
-            return datapoints
+            return datapoints, timedout
     
     def run_all_tests(self, tparams_list):
         """Run all test trials."""
@@ -119,7 +132,8 @@ class Runner(Task):
         for i, trial in enumerate(tparams_list, 1):
             itemstr = 'Running test {} of {} ...'.format(i, len(tparams_list))
             self.print(itemstr, end='')
-            datapoints = self.repeat_single_test(trial, len(itemstr))
+            datapoints, _timedout = self.repeat_single_test(
+                                                trial, len(itemstr))
             datapoint_list.extend(datapoints)
         return datapoint_list
     
