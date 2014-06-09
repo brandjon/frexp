@@ -26,16 +26,25 @@ def parse_style(style):
     
     Valid values:
     
-        lineformat: matplotlib line style
+        lineformat: matplotlib line style, or dash sequence as
+          list of "-"-separated integers
         
         markerformat: matplotlib marker style, optionally prefixed
           by '_' for hollow markers
         
         seriesformat: 'normal' for connect-the-dots, 'polyN' for
           polynomial fit of degree N, 'points' for point cloud
-          with no lines 
+          with no lines
     """
     lf, mf, series_format = style.split()
+    
+    parts = lf.split('-')
+    if all(p.isdigit() for p in parts):
+        # Dash sequence
+        lf = ''
+        dashes = [int(p) for p in parts]
+    else:
+        dashes = None
     
     if mf.startswith('_'):
         mf = mf[1:]
@@ -45,7 +54,7 @@ def parse_style(style):
     
     style = lf + mf
     
-    return style, hollow_markers, series_format
+    return lf, mf, hollow_markers, series_format, dashes
 
 
 class Extractor(Task):
@@ -72,6 +81,8 @@ class Extractor(Task):
     x_ticklocs = None
     y_ticklocs = None
     legend_ncol = None
+    xlabelpad = None
+    ylabelpad = None
     
     @property
     def config(self):
@@ -176,16 +187,19 @@ class Extractor(Task):
     def get_series(self):
         results = []
         for sid, dispname, color, style in self.series:
-            style, hollow_markers, series_format = parse_style(style)
+            (linestyle, markerstyle, hollow_markers,
+                series_format, dashes) = parse_style(style)
             data = self.get_series_points(self.data, sid,
                                           average=(series_format != 'points'))
             results.append(dict(
                 name = dispname,
-                style = style,
+                linestyle = linestyle,
+                markerstyle = markerstyle,
                 color = color,
                 errorbars = self.error_bars,
                 format = series_format,
                 hollow_markers = hollow_markers,
+                dashes = dashes,
                 data = data,
             ))
         return results
@@ -203,6 +217,8 @@ class Extractor(Task):
                 scalarx = self.scalarx,
                 scalary = self.scalary,
                 legend_ncol = self.legend_ncol,
+                ylabelpad = self.ylabelpad,
+                xlabelpad = self.xlabelpad,
                 series = self.get_series(),
             )],
             rcparams_file = self.rcparams_file,

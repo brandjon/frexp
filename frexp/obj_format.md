@@ -123,14 +123,18 @@ Plot data:
                 "scalarx": <bool>,
                 "scalary": <bool>,
                 "legend_ncol": <int or None>,
+                "ylabelpad": <int or None>,
+                "xlabelpad": <int or None>,
                 "series": [
                     {
                         "name": <string>,
-                        "style": <string>,
+                        "linestyle": <string>,
+                        "markerstyle": <string>,
                         "color": <string>,
                         "errorbars": <bool>,
                         "format": <one of "normal", "polyN", or "points">,
-                        'hollow_markers': <bool>,
+                        "hollow_markers": <bool>,
+                        "dashes": <int list or None>
                         "data": [(<x>, <y>,
                                     <low_err_delta>, <hi_err_delta>), ...],
                     },

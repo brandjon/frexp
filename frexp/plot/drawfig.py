@@ -32,24 +32,6 @@ def get_square_subplot_grid(n):
     return side, side
 
 
-def styleparts(style):
-    """Break up a plt.plot() line style into its line part
-    and marker part.
-    """
-    # Not sure what the exact format of the style parameter
-    # is, but in my use I always put the line style before
-    # the marker style.
-    if style.startswith('--'):
-        i = 2
-    elif style.startswith('-'):
-        i = 1
-    elif style.startswith('_'):
-        i = 1
-    elif style.startswith(':'):
-        i = 1
-    return style[:i], style[i:]
-
-
 # Structurally break down a plot into axes into series, and execute
 # matplotlib.pyplot commands.
 
@@ -100,12 +82,15 @@ def do_axes(ax):
     ylabel, xlabel = ax['ylabel'], ax['xlabel']
     scalarx, scalary = ax['scalarx'], ax['scalary']
     legend_ncol = ax['legend_ncol']
+    ylabelpad = ax['ylabelpad']
+    xlabelpad = ax['xlabelpad']
+    
     if title:
         plt.title(title)
     if ylabel:
-        plt.ylabel(ylabel)
+        plt.ylabel(ylabel, labelpad=ylabelpad)
     if xlabel:
-        plt.xlabel(xlabel)
+        plt.xlabel(xlabel, labelpad=xlabelpad)
     if logx:
         plt.gca().set_xscale('log')
     if logy:
@@ -128,45 +113,52 @@ def do_axes(ax):
     plt.legend(leg_artists, leg_texts, loc='upper left', ncol=legend_ncol)
 
 def do_series(ser):
-    name, style, color = ser['name'], ser['style'], ser['color']
+    name, color = ser['name'], ser['color']
     errorbars = ser['errorbars']
+    line_style = ser['linestyle']
+    marker_style = ser['markerstyle']
     series_format = ser['format']
     hollow_markers = ser['hollow_markers']
+    dashes = ser['dashes']
     data = ser['data']
     if len(data) == 0:
         return None, None
     unzipped = list(zip(*data))
     xs, ys, lowerrs, hierrs = unzipped
     
+    plotkargs = {}
+    plotkargs['marker'] = marker_style
+    plotkargs['color'] = color
     if hollow_markers:
-        plotkargs = {'markerfacecolor': 'none',
-                     'markeredgecolor': color,
-                     'markeredgewidth': 1}
+        plotkargs['markerfacecolor'] = 'none'
+        plotkargs['markeredgecolor'] = color
+    if dashes is not None:
+        plotkargs['dashes'] = dashes
     else:
-        plotkargs = {}
+        plotkargs['linestyle'] = line_style
+    
+    markeronly_kargs = dict(plotkargs)
+    markeronly_kargs.pop('linestyle', None)
+    markeronly_kargs.pop('dashes', None)
+    
+    lineonly_kargs = dict(plotkargs)
+    lineonly_kargs.pop('marker', None)
     
     if series_format == 'normal':
-        leg_artist = plt.plot(xs, ys, style,
-                              label=name, color=color, **plotkargs)
+        leg_artist = plt.plot(xs, ys, label=name, **plotkargs)
         assert len(leg_artist) == 1
         leg_artist = leg_artist[0]
     
     elif series_format.startswith('poly'):
         deg = int(series_format[4:])
         pol = np.polyfit(xs, ys, deg)
-        line_style, point_style = styleparts(style)
-        plt.plot(xs, ys, point_style,
-                 label='_nolegend_', color=color, **plotkargs)
-        plt.plot(xs, np.polyval(pol, xs), line_style,
-                 label=name, color=color, **plotkargs)
-        leg_artist = Line2D([0, 1], [0, 1], linestyle=line_style,
-                            marker=point_style,
-                            label=name, color=color, **plotkargs)
+        plt.plot(xs, ys, label='_nolegend_',
+                 linestyle='None', **markeronly_kargs)
+        plt.plot(xs, np.polyval(pol, xs), label=name, **lineonly_kargs)
+        leg_artist = Line2D([0, 1], [0, 1], label=name, **plotkargs)
     
     elif series_format == 'points':
-        line_style, point_style = styleparts(style)
-        leg_artist = plt.plot(xs, ys, point_style,
-                              label=name, color=color, **plotkargs)
+        leg_artist = plt.plot(xs, ys, label=name, **plotkargs)
         assert len(leg_artist) == 1
         leg_artist = leg_artist[0]
     
