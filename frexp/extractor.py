@@ -86,6 +86,7 @@ class Extractor(Task):
     x_ticklocs = None
     y_ticklocs = None
     legend_ncol = None
+    legend_loc = 'upper left'
     xlabelpad = None
     ylabelpad = None
     
@@ -223,6 +224,7 @@ class Extractor(Task):
                 scalarx = self.scalarx,
                 scalary = self.scalary,
                 legend_ncol = self.legend_ncol,
+                legend_loc = self.legend_loc,
                 ylabelpad = self.ylabelpad,
                 xlabelpad = self.xlabelpad,
                 series = self.get_series(),

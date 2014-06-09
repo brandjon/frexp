@@ -82,6 +82,7 @@ def do_axes(ax):
     ylabel, xlabel = ax['ylabel'], ax['xlabel']
     scalarx, scalary = ax['scalarx'], ax['scalary']
     legend_ncol = ax['legend_ncol']
+    legend_loc = ax['legend_loc']
     ylabelpad = ax['ylabelpad']
     xlabelpad = ax['xlabelpad']
     
@@ -110,7 +111,7 @@ def do_axes(ax):
             leg_artists.append(la)
             leg_texts.append(lt)
     
-    plt.legend(leg_artists, leg_texts, loc='upper left', ncol=legend_ncol)
+    plt.legend(leg_artists, leg_texts, loc=legend_loc, ncol=legend_ncol)
 
 def do_series(ser):
     name, color = ser['name'], ser['color']
