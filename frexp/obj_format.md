@@ -134,6 +134,7 @@ Plot data:
                         "errorbars": <bool>,
                         "format": <one of "normal", "polyN", or "points">,
                         "hollow_markers": <bool>,
+                        "marker_border": <bool>,
                         "dashes": <int list or None>
                         "data": [(<x>, <y>,
                                     <low_err_delta>, <hi_err_delta>), ...],

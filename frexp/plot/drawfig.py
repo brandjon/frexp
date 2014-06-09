@@ -132,6 +132,10 @@ def do_series(ser):
     if hollow_markers:
         plotkargs['markerfacecolor'] = 'none'
         plotkargs['markeredgecolor'] = color
+    else:
+        plotkargs['markerfacecolor'] = color
+        if not ser['marker_border']:
+            plotkargs['markeredgecolor'] = color
     if dashes is not None:
         plotkargs['dashes'] = dashes
     else:

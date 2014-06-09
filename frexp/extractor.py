@@ -51,10 +51,15 @@ def parse_style(style):
         hollow_markers = True
     else:
         hollow_markers = False
+    if mf.startswith('!'):
+        mf =  mf[1:]
+        marker_border = True
+    else:
+        marker_border = False
     
     style = lf + mf
     
-    return lf, mf, hollow_markers, series_format, dashes
+    return lf, mf, hollow_markers, marker_border, series_format, dashes
 
 
 class Extractor(Task):
@@ -187,7 +192,7 @@ class Extractor(Task):
     def get_series(self):
         results = []
         for sid, dispname, color, style in self.series:
-            (linestyle, markerstyle, hollow_markers,
+            (linestyle, markerstyle, hollow_markers, marker_border,
                 series_format, dashes) = parse_style(style)
             data = self.get_series_points(self.data, sid,
                                           average=(series_format != 'points'))
@@ -199,6 +204,7 @@ class Extractor(Task):
                 errorbars = self.error_bars,
                 format = series_format,
                 hollow_markers = hollow_markers,
+                marker_border = marker_border,
                 dashes = dashes,
                 data = data,
             ))
