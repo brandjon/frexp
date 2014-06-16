@@ -96,6 +96,11 @@ class ExpWorkflow(Workflow):
         return self.prefix + '_' + self.imagename + '.pdf'
     
     @property
+    def csv_filename(self):
+        """Filename for plot data as csv."""
+        return self.prefix + '_' + self.imagename + '.csv'
+    
+    @property
     def ExpDatagen(self):
         raise NotImplementedError
     

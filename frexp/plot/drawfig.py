@@ -4,8 +4,6 @@
 import math
 
 import matplotlib
-# Use a Qt backend since Tk seems to mess up my keypresses (under Windows).
-matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.ticker import MaxNLocator, FixedLocator, ScalarFormatter

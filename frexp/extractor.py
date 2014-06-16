@@ -14,6 +14,7 @@ import pickle
 import math
 from itertools import groupby
 from operator import itemgetter
+import csv
 
 from .workflow import Task
 
@@ -234,6 +235,30 @@ class Extractor(Task):
             config = self.config,
         )
     
+    def get_csvdata(self, axes):
+        header = ['x']
+        all_x = set()
+        data = {}
+        for s in axes['series']:
+            if len(s['data']) == 0:
+                continue
+            series_name = s['name']
+            header.append(series_name)
+            series_data = data.setdefault(series_name, {})
+            for (x, y, _, _) in s['data']:
+                assert x not in series_data
+                series_data[x] = y
+                all_x.add(x)
+        
+        csvdata = []
+        for x in sorted(all_x):
+            row = {'x': x}
+            row.update((series_name, series_data.get(x, None))
+                       for series_name, series_data in data.items())
+            csvdata.append(row)
+        
+        return header, csvdata
+    
     def run(self):
         with open(self.workflow.data_filename, 'rb') as in_file:
             self.data = pickle.load(in_file)
@@ -242,6 +267,15 @@ class Extractor(Task):
         
         with open(self.workflow.plotdata_filename, 'wb') as out_file:
             pickle.dump(plotdata, out_file)
+        
+        assert len(plotdata['axes']) == 1
+        header, csvdata = self.get_csvdata(plotdata['axes'][0])
+        
+        with open(self.workflow.csv_filename, 'wt', newline='') \
+                as out_csv_file:
+            wr = csv.DictWriter(out_csv_file, header)
+            wr.writeheader()
+            wr.writerows(csvdata)
         
         self.print('Done.')
     
