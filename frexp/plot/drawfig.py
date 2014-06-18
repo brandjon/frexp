@@ -54,7 +54,8 @@ def do_plot_helper(plot):
         fig_width, fig_height = config['figsize']
         plt.gcf().set_size_inches(fig_width, fig_height, forward=True)
     
-    plt.suptitle(title, size='x-large')
+    if title:
+        plt.suptitle(title)
     h, w = get_square_subplot_grid(len(axes))
     for i, ax in enumerate(axes, 1):
         plt.subplot(h, w, i)
@@ -157,7 +158,9 @@ def do_series(ser):
         pol = np.polyfit(xs, ys, deg)
         plt.plot(xs, ys, label='_nolegend_',
                  linestyle='None', **markeronly_kargs)
-        plt.plot(xs, np.polyval(pol, xs), label=name, **lineonly_kargs)
+        sample_xs = np.linspace(xs[0], xs[-1], len(xs) * 10)
+        plt.plot(sample_xs, np.polyval(pol, sample_xs),
+                 label=name, **lineonly_kargs)
         leg_artist = Line2D([0, 1], [0, 1], label=name, **plotkargs)
     
     elif series_format == 'points':

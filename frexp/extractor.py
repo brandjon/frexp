@@ -214,10 +214,9 @@ class Extractor(Task):
     
     def get_plotdata(self):
         return dict(
-            plot_title = self.title if self.title is not None
-                         else '',
+            plot_title = None,
             axes = [dict(
-                axes_title = None,
+                axes_title = self.title,
                 ylabel = self.ylabel,
                 xlabel = self.xlabel,
                 logx = self.logx,
