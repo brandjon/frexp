@@ -164,7 +164,8 @@ def do_series(ser):
         leg_artist = Line2D([0, 1], [0, 1], label=name, **plotkargs)
     
     elif series_format == 'points':
-        leg_artist = plt.plot(xs, ys, label=name, **plotkargs)
+        leg_artist = plt.plot(xs, ys, label=name,
+                              linestyle='None', **markeronly_kargs)
         assert len(leg_artist) == 1
         leg_artist = leg_artist[0]
     

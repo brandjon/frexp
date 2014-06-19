@@ -69,6 +69,8 @@ class Extractor(Task):
     for retrieving and manipulating data points.
     """
     
+    generate_csv = True
+    
     # Override to alter display characteristics.
     rcparams_file = None
     """Path to matplotlib rc file."""
@@ -267,14 +269,15 @@ class Extractor(Task):
         with open(self.workflow.plotdata_filename, 'wb') as out_file:
             pickle.dump(plotdata, out_file)
         
-        assert len(plotdata['axes']) == 1
-        header, csvdata = self.get_csvdata(plotdata['axes'][0])
-        
-        with open(self.workflow.csv_filename, 'wt', newline='') \
-                as out_csv_file:
-            wr = csv.DictWriter(out_csv_file, header)
-            wr.writeheader()
-            wr.writerows(csvdata)
+        if self.generate_csv:
+            assert len(plotdata['axes']) == 1
+            header, csvdata = self.get_csvdata(plotdata['axes'][0])
+            
+            with open(self.workflow.csv_filename, 'wt', newline='') \
+                    as out_csv_file:
+                wr = csv.DictWriter(out_csv_file, header)
+                wr.writeheader()
+                wr.writerows(csvdata)
         
         self.print('Done.')
     
