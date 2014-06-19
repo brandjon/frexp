@@ -335,6 +335,11 @@ class NormalizedExtractor(SimpleExtractor):
     output is not allowed.
     """
     
+    # Map from sid to base sid used to normalize it.
+    # sids not in the map are not displayed.
+    base_sid_map = None
+    # Alternatively, set base_sid to a single sid used
+    # to normalize all other sids.
     base_sid = None
     
     error_bars = False
@@ -348,11 +353,23 @@ class NormalizedExtractor(SimpleExtractor):
         """Given datapoints and a series id, return a list of
         (x, y) points with error data.
         """
-        # Don't show base series.
-        if sid == self.base_sid:
-            return []
         
-        base_points = super().get_series_points(datapoints, self.base_sid,
+        # Only use one or the other.
+        assert not (self.base_sid_map is not None and
+                    self.base_sid is not None)
+        
+        if self.base_sid_map is not None:
+            base_sid = self.base_sid_map.get(sid, None)
+            if base_sid is None:
+                return []
+        elif self.base_sid is not None:
+            base_sid = self.base_sid
+            if sid == base_sid:
+                return []
+        else:
+            assert()
+        
+        base_points = super().get_series_points(datapoints, base_sid,
                                                 average=True)
         sid_points = super().get_series_points(datapoints, sid,
                                                average=True)
