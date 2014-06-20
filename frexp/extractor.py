@@ -89,8 +89,10 @@ class Extractor(Task):
     max_yitvls = None
     x_ticklocs = None
     y_ticklocs = None
+    tightlayout_bbox = None
     legend_ncol = None
     legend_loc = 'upper left'
+    legend_bbox = None
     xlabelpad = None
     ylabelpad = None
     
@@ -100,7 +102,8 @@ class Extractor(Task):
                 for key in ['figsize',
                             'xmin', 'xmax', 'ymin', 'ymax',
                             'max_xitvls', 'max_yitvls',
-                            'x_ticklocs', 'y_ticklocs']}
+                            'x_ticklocs', 'y_ticklocs',
+                            'tightlayout_bbox']}
     
     def average_points(self, xy, discard_ratio):
         """Given a list of (x, y) pairs, return a list of quadruples
@@ -238,6 +241,7 @@ class Extractor(Task):
                 scalary = self.scalary,
                 legend_ncol = self.legend_ncol,
                 legend_loc = self.legend_loc,
+                legend_bbox = self.legend_bbox,
                 ylabelpad = self.ylabelpad,
                 xlabelpad = self.xlabelpad,
                 series = self.get_series(),

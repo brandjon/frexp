@@ -72,8 +72,9 @@ def do_plot_helper(plot):
         ax.xaxis.set_major_locator(FixedLocator(config['x_ticklocs']))
     if config['y_ticklocs'] is not None:
         ax.yaxis.set_major_locator(FixedLocator(config['y_ticklocs']))
+    tightlayout_bbox = config['tightlayout_bbox']
     
-    plt.tight_layout()
+    plt.tight_layout(rect=tightlayout_bbox)
 
 def do_axes(ax):
     title, series = ax['axes_title'], ax['series']
@@ -84,6 +85,7 @@ def do_axes(ax):
     legend_loc = ax['legend_loc']
     ylabelpad = ax['ylabelpad']
     xlabelpad = ax['xlabelpad']
+    legend_bbox = ax['legend_bbox']
     
     if title:
         plt.title(title)
@@ -101,6 +103,8 @@ def do_axes(ax):
         plt.gca().yaxis.set_major_formatter(ScalarFormatter())
     if legend_ncol is None:
         legend_ncol = 1
+    if legend_bbox is None:
+        legend_bbox = (0, 0, 1, 1)
     
     leg_artists = []
     leg_texts = []
@@ -110,7 +114,8 @@ def do_axes(ax):
             leg_artists.append(la)
             leg_texts.append(lt)
     
-    plt.legend(leg_artists, leg_texts, loc=legend_loc, ncol=legend_ncol)
+    plt.legend(leg_artists, leg_texts, loc=legend_loc, ncol=legend_ncol,
+               bbox_to_anchor=legend_bbox)
 
 def do_series(ser):
     name, color = ser['name'], ser['color']

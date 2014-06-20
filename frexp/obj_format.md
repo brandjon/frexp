@@ -123,6 +123,8 @@ Plot data:
                 "scalarx": <bool>,
                 "scalary": <bool>,
                 "legend_ncol": <int or None>,
+                "legend_loc": <loc value or None>,
+                "legend_bbox": <bbox value or None>,
                 "ylabelpad": <int or None>,
                 "xlabelpad": <int or None>,
                 "series": [
