@@ -7,6 +7,7 @@ __all__ = [
     'MetricExtractor',
     'TotalSizeExtractor',
     'NormalizedExtractor',
+    'ScaledExtractor',
 ]
 
 
@@ -193,6 +194,14 @@ class Extractor(Task):
         points = self.project_and_average_data(data, average=average)
         return points
     
+    def get_dispname(self, sid, dispname):
+        """Hook for changing the display name of a series."""
+        return dispname
+    
+    def scale_data(self, sid, data):
+        """Hook for scaling data."""
+        return data
+    
     def get_series(self):
         results = []
         for sid, dispname, color, style in self.series:
@@ -200,6 +209,8 @@ class Extractor(Task):
                 series_format, dashes) = parse_style(style)
             data = self.get_series_points(self.data, sid,
                                           average=(series_format != 'points'))
+            dispname = self.get_dispname(sid, dispname)
+            data = self.scale_data(sid, data)
             results.append(dict(
                 name = dispname,
                 linestyle = linestyle,
@@ -381,3 +392,44 @@ class NormalizedExtractor(SimpleExtractor):
             adjusted_y = self.normalize(y, base_y)
             points.append((x, adjusted_y, 0, 0))
         return points
+
+
+class ScaledExtractor(Extractor):
+    
+    """Base class for extractors that scale a series by a multiplier."""
+    
+    multipliers = None
+    """Dictionary from sid to multiplier to use."""
+    
+    # Characters to use for displaying a multiplier greater than
+    # or less than 1, respectively. Overriding timesop is useful
+    # when using LaTeX.
+    timesop = 'x'
+    divop = '/'
+    
+    def get_dispname(self, sid, dispname):
+        dispname = super().get_dispname(sid, dispname)
+        mult = self.multipliers.get(sid, None)
+        if mult is not None:
+            # Add the multiplier to the series name.
+            if mult >= 1:
+                op = ' ' + self.timesop + ' '
+            else:
+                op = ' ' + self.divop + ' '
+                mult = 1 / mult
+            # Round off multiplier to 3 decimal places, or
+            # to integer if it appears to represent one.
+            if round(mult, 3) == round(mult):
+                mult = round(mult)
+            else:
+                mult = round(mult, 3)
+            dispname += op + str(mult)
+        return dispname
+    
+    def scale_data(self, sid, data):
+        data = super().scale_data(sid, data)
+        mult = self.multipliers.get(sid, None)
+        if mult is not None:
+            data = [(x, y * mult, lo * mult, hi * mult)
+                    for (x, y, lo, hi) in data]
+        return data
