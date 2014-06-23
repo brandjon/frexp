@@ -55,11 +55,19 @@ class Verifier(Task):
         with open(self.workflow.params_filename, 'rb') as in_file:
             tparams_list = pickle.load(in_file)
         
+        with open(self.workflow.data_filename, 'rb') as in_file:
+            datapoints = pickle.load(in_file)
+        datapoint_tids = set(d['tid'] for d in datapoints)
+        
         tparams_list.sort(key=itemgetter('tid'))
         tgroups = groupby(tparams_list, itemgetter('tid'))
         tgroups = [(tid, list(tgs)) for tid, tgs in tgroups]
         
         for i, (tid, tgs) in enumerate(tgroups):
+            if tid not in datapoint_tids:
+                print('Skipping trial group {:<10} ({}/{})\n  '.format(
+                      tid + ' ...', i, len(tgroups)))
+            
             itemstr = 'Verifying trial group {:<10} ({}/{})\n  '.format(
                         tid + ' ...', i, len(tgroups))
             self.print(itemstr, end='')
@@ -76,7 +84,7 @@ class Verifier(Task):
                 with open(ds_fn, 'rb') as dsfile:
                     dataset = pickle.load(dsfile)
                 
-                output = self.dispatch_test(dataset, prog, trial)
+                output = self.dispatch_test(dataset, prog, trial)['output']
                 
                 if goal is None:
                     goal = output
