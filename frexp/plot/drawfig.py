@@ -81,6 +81,7 @@ def do_axes(ax):
     logx, logy = ax['logx'], ax['logy']
     ylabel, xlabel = ax['ylabel'], ax['xlabel']
     scalarx, scalary = ax['scalarx'], ax['scalary']
+    no_legend = ax['no_legend']
     legend_ncol = ax['legend_ncol']
     legend_loc = ax['legend_loc']
     ylabelpad = ax['ylabelpad']
@@ -116,6 +117,7 @@ def do_axes(ax):
     
     plt.legend(leg_artists, leg_texts, loc=legend_loc, ncol=legend_ncol,
                bbox_to_anchor=legend_bbox)
+    plt.gca().get_legend().set_visible(not no_legend)
 
 def do_series(ser):
     name, color = ser['name'], ser['color']

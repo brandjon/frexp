@@ -90,6 +90,7 @@ class Extractor(Task):
     x_ticklocs = None
     y_ticklocs = None
     tightlayout_bbox = None
+    no_legend = False
     legend_ncol = None
     legend_loc = 'upper left'
     legend_bbox = None
@@ -239,6 +240,7 @@ class Extractor(Task):
                 logy = self.logy,
                 scalarx = self.scalarx,
                 scalary = self.scalary,
+                no_legend = self.no_legend,
                 legend_ncol = self.legend_ncol,
                 legend_loc = self.legend_loc,
                 legend_bbox = self.legend_bbox,

@@ -122,6 +122,7 @@ Plot data:
                 "logy": <bool>,
                 "scalarx": <bool>,
                 "scalary": <bool>,
+                "no_legend": <bool>,
                 "legend_ncol": <int or None>,
                 "legend_loc": <loc value or None>,
                 "legend_bbox": <bbox value or None>,
