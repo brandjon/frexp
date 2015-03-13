@@ -1,14 +1,22 @@
 from setuptools import setup
 
-import frexp
-
 setup(
-    name='frexp',
-    version=frexp.__version__,
+    name = 'frexp',
+    version = '0.2.0-dev',
+    url = 'https://github.com/brandjon/frexp',
     
-    author='Jon Brandvein',
-    license='MIT License',
-    description='A library for running benchmark experiments',
+    author = 'Jon Brandvein',
+    author_email = 'jon.brandvein@gmail.com',
+    license = 'MIT License',
+    description = 'A framework for writing benchmark experiments',
     
-    packages=['frexp', 'frexp.plot'],
+    classifiers = [
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Topic :: System :: Benchmark',
+    ],
+    
+    packages = ['frexp', 'frexp.plot'],
 )
