@@ -1,1 +1,4 @@
 __pycache__
+.tox
+frexp.egg-info
+dist
