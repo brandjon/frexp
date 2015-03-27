@@ -53,6 +53,8 @@ def do_plot_helper(plot):
     if config['figsize'] is not None:
         fig_width, fig_height = config['figsize']
         plt.gcf().set_size_inches(fig_width, fig_height, forward=True)
+    if config['dpi'] is not None:
+        plt.gcf().set_dpi(config['dpi'])
     
     if title:
         plt.suptitle(title)

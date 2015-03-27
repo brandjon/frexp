@@ -81,6 +81,7 @@ class Extractor(Task):
     """
     
     figsize = None
+    dpi = None
     xmin = None
     xmax = None
     ymin = None
@@ -100,7 +101,7 @@ class Extractor(Task):
     @property
     def config(self):
         return {key: getattr(self, key)
-                for key in ['figsize',
+                for key in ['figsize', 'dpi',
                             'xmin', 'xmax', 'ymin', 'ymax',
                             'max_xitvls', 'max_yitvls',
                             'x_ticklocs', 'y_ticklocs',
