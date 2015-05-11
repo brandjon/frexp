@@ -173,10 +173,6 @@ def do_figure(plotdata):
         plt.xlabel(d['x_label'], labelpad=d['x_labelpad'])
     if d['y_label']:
         plt.ylabel(d['y_label'], labelpad=d['y_labelpad'])
-    if not (d['x_min'] == d['x_max'] == None):
-        plt.xlim(xmin=d['x_min'], xmax=d['x_max'])
-    if not (d['y_min'] == d['y_max'] == None):
-        plt.ylim(ymin=d['y_min'], ymax=d['y_max'])
     ax = plt.gca()
     if d['x_maxitvls']:
         ax.xaxis.set_major_locator(MaxNLocator(d['x_maxitvls']))
@@ -208,6 +204,14 @@ def do_figure(plotdata):
     for ser in d['series']:
         info = do_series(ser)
         seriesinfo.append(info)
+    
+    # For whatever reason, this needs to be done after the
+    # series are already plotted, or else passing None to
+    # set the limit automatically doesn't work.
+    if not (d['x_min'] == d['x_max'] == None):
+        plt.xlim(xmin=d['x_min'], xmax=d['x_max'])
+    if not (d['y_min'] == d['y_max'] == None):
+        plt.ylim(ymin=d['y_min'], ymax=d['y_max'])
     
     if d['legend']:
         legend_kargs = {}
