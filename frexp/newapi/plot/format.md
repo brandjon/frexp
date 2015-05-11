@@ -1,6 +1,9 @@
 Plot data:
 
     {
+        "rcparams": {...},
+        "rcparams_file": <string>,
+        
         "title": <string>,
         
         "x_label": <string>,
@@ -23,9 +26,6 @@ Plot data:
         "legend_ncol": <int>,
         "legend_loc": <loc string>,
         "legend_bbox": <quadruple>,
-        
-        "rcparams": {...},
-        "rcparams_file": <string>,
         
         "figsize": (<width>, <height>),
         "dpi": <int>,

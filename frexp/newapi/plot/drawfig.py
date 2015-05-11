@@ -21,6 +21,9 @@ import numpy as np
 
 
 default_plotdata = {
+    'rcparams': {},
+    'rcparams_file': None,
+    
     'title': None,
     
     'x_label': None,
@@ -43,9 +46,6 @@ default_plotdata = {
     'legend_ncol': None,
     'legend_loc': 'upper left',
     'legend_bbox': None,
-    
-    'rcparams': {},
-    'rcparams_file': None,
     
     'figsize': None,
     'dpi': None,
@@ -71,10 +71,11 @@ default_seriesdata = {
 
 
 SeriesArtistInfo = namedtuple('SeriesArtistInfo', [
-    'legline',    # Line2D for legend
-    'name',       # name string for legend
-    'plotlines',  # List of Line2Ds for plotting
-    'legtext',    # Text for legend label, or None
+    'name',       # name of series
+    'proxy',      # proxy artist used to create legend entry
+    'plotlines',  # list of Line2Ds for plotting
+    'legline',    # Line2D from legend entry, or None
+    'legtext',    # Text from legend entry, or None
 ])
 
 
@@ -148,13 +149,19 @@ def do_series(seriesdata):
         bad |= not (len(low_err) == len(high_err) == len(xs) == len(ys))
         if bad:
             raise ValueError('Invalid error bar data')
-        line = plt.errorbar(xs, ys, yerr=(low_err, high_err),
-                            ecolor=d['color'])
-        plotlines.extend(line)
+        container = plt.errorbar(xs, ys, yerr=(low_err, high_err),
+                                 fmt='None', ecolor=d['color'],
+                                 **plot_kargs)
+        # Getting the Line2Ds for errorbars is hackish.
+        # The return value of plt.errorbar() doesn't appear
+        # to be documented.
+        plotlines.extend(container.lines[1])
+        plotlines.extend(container.lines[2])
     
-    legline = Line2D([], [], **plot_kargs)
-    # legtext will be filled in when the legend is drawn.
-    return SeriesArtistInfo(legline, name, plotlines, None)
+    proxyline = Line2D([], [], **plot_kargs)
+    # legline and legtext will be filled in when the legend
+    # is generated.
+    return SeriesArtistInfo(name, proxyline, plotlines, None, None)
 
 
 def do_figure(plotdata):
@@ -166,6 +173,11 @@ def do_figure(plotdata):
     """
     d = deepcopy(default_plotdata)
     d.update(plotdata)
+    
+    if d['rcparams_file']:
+        matplotlib.rc_file(d['rcparams_file'])
+    if d['rcparams']:
+        matplotlib.rcParams.update(d['rcparams'])
     
     if d['title']:
         plt.title(d['title'])
@@ -186,11 +198,6 @@ def do_figure(plotdata):
         ax.set_xscale('log')
     if d['y_log']:
         ax.set_yscale('log')
-    
-    if d['rcparams_file']:
-        matplotlib.rc_file(d['rcparams_file'])
-    if d['rcparams']:
-        matplotlib.rcParams.update(d['rcparams'])
     
     if d['figsize']:
         fig_width, fig_height = d['figsize']
@@ -219,13 +226,16 @@ def do_figure(plotdata):
         legend_kargs['bbox_to_anchor'] = d['legend_bbox']
         if d['legend_ncol']:
             legend_kargs['ncol'] = d['legend_ncol']
-        legend = plt.legend([info.legline for info in seriesinfo],
+        legend = plt.legend([info.proxy for info in seriesinfo],
                             [info.name for info in seriesinfo],
                             **legend_kargs)
     
     # Fill in legtext.
-    seriesinfo = [info._replace(legtext=text)
-                  for info, text in zip(seriesinfo, legend.get_texts())]
+    leglines = legend.get_lines()
+    legtexts = legend.get_texts()
+    assert len(leglines) == len(legtexts) == len(seriesinfo)
+    seriesinfo = [info._replace(legline=line, legtext=text)
+                  for info, line, text in zip(seriesinfo, leglines, legtexts)]
     
     return seriesinfo
 
@@ -293,6 +303,21 @@ class SelectorCursor:
 class Plot:
     
     HIGHLIGHT_COLOR = '#00AAFF'
+    @property
+    def LINE_HIGHLIGHT(self):
+        return {
+            'zorder': 3,
+            'color': self.HIGHLIGHT_COLOR,
+            'linewidth': 3.0,
+            'markerfacecolor': self.HIGHLIGHT_COLOR,
+            'markeredgecolor': self.HIGHLIGHT_COLOR,
+            'markersize': 8,
+        }
+    @property
+    def TEXT_HIGHLIGHT(self):
+        return {
+            'color': self.HIGHLIGHT_COLOR,
+        }
     
     def __init__(self, plotdata):
         self.plotdata = plotdata
@@ -329,6 +354,7 @@ class Plot:
         if k == 'x':
             self.xkcd = not self.xkcd
             self.redraw()
+            self.canvas.draw()
     
     def lineselector_handler(self, event):
         k = event.key
@@ -343,46 +369,43 @@ class Plot:
         actionmap[k]()
     
     def mark(self, i, active):
+        # We don't appear to be able to easily highlight the markers
+        # in the legend entry. The artist for legend markers isn't
+        # directly exposed by the Legend object.
+        
         if i == None:
             return
-        legline, _name, plotlines, legtext = self.seriesinfo[i]
+        _name, _proxy, plotlines, legline, legtext = self.seriesinfo[i]
         
-        def save(artist, attrs):
+        def apply(artist, highlightprops):
             props.setdefault(artist, {})
-            for attr in attrs:
-                getter = getattr(artist, 'get_' + attr)
-                props[artist][attr] = getter()
+            for attr, value in highlightprops.items():
+                getter = getattr(artist, 'get_' + attr, None)
+                setter = getattr(artist, 'set_' + attr, None)
+                if getter is not None and setter is not None:
+                    props[artist][attr] = getter()
+                    setter(value)
         
-        def restore(artist, attrs):
-            for attr in attrs:
-                setter = getattr(artist, 'set_' + attr)
-                setter(props[artist][attr])
-        
-        LINE_PROPS = ['zorder', 'color', 'linewidth',
-                      'markerfacecolor', 'markeredgecolor']
-        TEXT_PROPS = ['color']
+        def revert(artist, highlightprops):
+            for attr in highlightprops.keys():
+                setter = getattr(artist, 'set_' + attr, None)
+                if setter is not None:
+                    setter(props[artist][attr])
         
         if active:
             self.style_map[i] = props = {}
             for line in plotlines:
-                save(line, LINE_PROPS)
-                line.set_zorder(3)
-                line.set_color(self.HIGHLIGHT_COLOR)
-                line.set_linewidth(3.0)
-                line.set_markerfacecolor(self.HIGHLIGHT_COLOR)
-                line.set_markeredgecolor(self.HIGHLIGHT_COLOR)
-            save(legline, LINE_PROPS)
-            legline.set_linewidth(3.0)
-            save(legtext, TEXT_PROPS)
-            legtext.set_color(self.HIGHLIGHT_COLOR)
+                apply(line, self.LINE_HIGHLIGHT)
+            apply(legline, self.LINE_HIGHLIGHT)
+            apply(legtext, self.TEXT_HIGHLIGHT)
         
         else:
             # Load from style properties.
             props = self.style_map[i]
             for line in plotlines:
-                restore(line, LINE_PROPS)
-            restore(legline, LINE_PROPS)
-            restore(legtext, TEXT_PROPS)
+                revert(line, self.LINE_HIGHLIGHT)
+            revert(legline, self.LINE_HIGHLIGHT)
+            revert(legtext, self.TEXT_HIGHLIGHT)
         
         self.canvas.draw()
     
