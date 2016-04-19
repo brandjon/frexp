@@ -41,6 +41,9 @@ class Verifier(Task):
         with open(pipe_fn, 'wb') as pf:
             pickle.dump((dataset, prog, other_tparams), pf)
         
+        # Needed to ensure consistent hashing of recorded results.
+        os.environ['PYTHONHASHSEED'] = '0'
+        
         child = Process(target=self.workflow.ExpVerifyDriver, args=(pipe_fn,))
         child.start()
         
